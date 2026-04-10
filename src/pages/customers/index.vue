@@ -6,11 +6,23 @@
           <span class="page-title-icon bg-gradient-success text-white mr-2">
             <i class="mdi mdi-account-multiple"></i>
           </span>
-          Tüm Müşteriler ({{filteredData.length}})
+          Tüm Müşteriler ({{ filteredData.length }})
         </div>
         <div>
-          <el-button type="success" size="medium" icon="el-icon-location-outline" @click="openCreateRouteDialog">Rota Oluştur</el-button>
-          <el-button type="success" size="medium" icon="el-icon-circle-plus" @click="isOpenDialog('add')">Müşteri Oluştur</el-button>
+          <el-button
+            type="success"
+            size="medium"
+            icon="el-icon-location-outline"
+            @click="openCreateRouteDialog"
+            >Rota Oluştur</el-button
+          >
+          <el-button
+            type="success"
+            size="medium"
+            icon="el-icon-circle-plus"
+            @click="isOpenDialog('add')"
+            >Müşteri Oluştur</el-button
+          >
         </div>
       </h3>
       <!-- liste gruplar halinde gösteribilir group by gibi -->
@@ -61,7 +73,11 @@
                   {{ scope.row.name }} {{ scope.row.surname }}
                 </template>
               </el-table-column>
-              <el-table-column prop="phone" label="Telefon" width="115"></el-table-column>
+              <el-table-column
+                prop="phone"
+                label="Telefon"
+                width="115"
+              ></el-table-column>
               <el-table-column prop="group" label="Bölge" sortable>
                 <template v-slot="scope">
                   {{ getGroupNameList(scope.row.group) }}
@@ -72,21 +88,38 @@
                   {{ scope.row.totalSale | formatNumber }}
                 </template>
               </el-table-column>
-              <el-table-column prop="totalCollection" label="Toplam Tahsilat" sortable width="150">
+              <el-table-column
+                prop="totalCollection"
+                label="Toplam Tahsilat"
+                sortable
+                width="150"
+              >
                 <template v-slot="scope">
                   {{ scope.row.totalCollection | formatNumber }}
                 </template>
               </el-table-column>
               <el-table-column prop="totalDebt" label="Toplam Borç" sortable>
                 <template v-slot="scope">
-                  <label v-if="scope.row.totalDebt > 0" class="badge badge-danger">{{ scope.row.totalDebt | formatNumber }} ₺</label>
+                  <label
+                    v-if="scope.row.totalDebt > 0"
+                    class="badge badge-danger"
+                    >{{ scope.row.totalDebt | formatNumber }} ₺</label
+                  >
                   <label v-else class="badge badge-gradient-success">
-                    <i class="el-icon-success"></i> Ödendi</label>
+                    <i class="el-icon-success"></i> Ödendi</label
+                  >
                 </template>
               </el-table-column>
               <el-table-column prop="note" label="Not">
                 <template v-slot="scope">
-                  <el-tooltip class="item" effect="dark" :content="scope.row.note ? scope.row.note : 'Henüz not belirtilmedi'" placement="left">
+                  <el-tooltip
+                    class="item"
+                    effect="dark"
+                    :content="
+                      scope.row.note ? scope.row.note : 'Henüz not belirtilmedi'
+                    "
+                    placement="left"
+                  >
                     <div class="cursor gap-5">
                       <i class="el-icon-info"></i>
                       <span>Bilgi</span>
@@ -97,9 +130,30 @@
               <el-table-column fixed="right" label="İşlem" width="190">
                 <template v-slot="scope">
                   <div class="process">
-                    <el-button v-if="scope.row.isProcess" type="success" size="small" icon="el-icon-notebook-2" @click="handleClick(scope.row)">Hesap Ekstresi</el-button>
-                    <el-button v-if="!scope.row.isProcess" type="danger" size="small" icon="el-icon-delete" circle @click="openDeletePopup(scope.row)" :disabled="scope.row.totalOutputWeight > 0"></el-button>
-                    <el-button type="primary" size="small" icon="el-icon-edit" circle @click="isOpenDialog('edit', scope.row)"></el-button>
+                    <el-button
+                      v-if="scope.row.isProcess"
+                      type="success"
+                      size="small"
+                      icon="el-icon-notebook-2"
+                      @click="handleClick(scope.row)"
+                      >Hesap Ekstresi</el-button
+                    >
+                    <el-button
+                      v-if="!scope.row.isProcess"
+                      type="danger"
+                      size="small"
+                      icon="el-icon-delete"
+                      circle
+                      @click="openDeletePopup(scope.row)"
+                      :disabled="scope.row.totalOutputWeight > 0"
+                    ></el-button>
+                    <el-button
+                      type="primary"
+                      size="small"
+                      icon="el-icon-edit"
+                      circle
+                      @click="isOpenDialog('edit', scope.row)"
+                    ></el-button>
                   </div>
                 </template>
               </el-table-column>
@@ -195,7 +249,10 @@
       width="25%"
       @close="closeDeletePopup"
     >
-      <p class="mb-0"><b>{{ currentCustomer.companyName }}</b> adlı müşterinizi silmek istediğinizden emin misiniz?</p>
+      <p class="mb-0">
+        <b>{{ currentCustomer.companyName }}</b> adlı müşterinizi silmek
+        istediğinizden emin misiniz?
+      </p>
       <span slot="footer" class="dialog-footer">
         <el-button @click="deleteCustomerPopupStatus = false">Vazgeç</el-button>
         <el-button type="danger" @click="deleteCustomer">Evet, Sil</el-button>
@@ -248,7 +305,7 @@
         </el-row>
       </el-form>
 
-      <hr>
+      <hr />
 
       <el-row :gutter="16">
         <el-col :span="13">
@@ -258,7 +315,8 @@
             type="info"
             :closable="false"
             show-icon
-            class="mb-4">
+            class="mb-4"
+          >
           </el-alert>
         </el-col>
       </el-row>
@@ -269,12 +327,17 @@
         style="width: 100%"
         show-summary
         :summary-method="getSummariesRoute"
-        empty-text="Rota için müşteri bulunamadı!">
+        empty-text="Rota için müşteri bulunamadı!"
+      >
         <el-table-column prop="companyName" label="Firma Adı" width="250">
         </el-table-column>
         <el-table-column prop="totalDebt" label="Toplam Borç">
           <template v-slot="scope">
-            <label v-if="scope.row.totalDebt > 0" class="badge badge-gradient-info">{{ scope.row.totalDebt | formatNumber }}₺</label>
+            <label
+              v-if="scope.row.totalDebt > 0"
+              class="badge badge-gradient-info"
+              >{{ scope.row.totalDebt | formatNumber }}₺</label
+            >
             <label v-else class="badge badge-gradient-success">Ödendi</label>
           </template>
         </el-table-column>
@@ -286,7 +349,13 @@
       </el-table>
       <span slot="footer" class="dialog-footer">
         <el-button @click="createRouteDialog = false">Vazgeç</el-button>
-        <el-button type="primary" icon="el-icon-printer" @click="printRoute" :disabled="!getRouteList.length">Çıktı Al</el-button>
+        <el-button
+          type="primary"
+          icon="el-icon-printer"
+          @click="printRoute"
+          :disabled="!getRouteList.length"
+          >Çıktı Al</el-button
+        >
       </span>
     </el-dialog>
   </div>
@@ -294,8 +363,8 @@
 
 <script>
 import customers from "@/mock/customers.json";
-import globalMixin from '@/mixins/global.mixin.js';
-import { formatNumber } from '@/util/helpers';
+import globalMixin from "@/mixins/global.mixin.js";
+import { formatNumber } from "@/util/helpers";
 import dataAll from "@/mock/transactions-all.js";
 import pdfMake from "pdfmake/build/pdfmake";
 import pdfFonts from "pdfmake/build/vfs_fonts";
@@ -322,25 +391,27 @@ export default {
         phone: "",
         address: "",
         group: "",
-        note: ""
+        note: "",
       },
       filter: {
         search: "",
         group: "",
         visitType: "Tümü",
-        groupForRoute: ""
+        groupForRoute: "",
       },
-    }
+    };
   },
   computed: {
     getCustomerList() {
       return customers;
     },
     getTransactionList() {
-      return dataAll
+      return dataAll;
     },
     getPopupTitle() {
-      return this.isEdit ? "Müşteri Bilgilerini Düzenle" : "Yeni Müşteri Oluştur"
+      return this.isEdit
+        ? "Müşteri Bilgilerini Düzenle"
+        : "Yeni Müşteri Oluştur";
     },
     todayGroupNumber() {
       const today = new Date().getDay();
@@ -350,8 +421,8 @@ export default {
       return today;
     },
     paginatedData() {
-      const start = (this.currentPage - 1) * this.pageSize
-      const end = start + this.pageSize
+      const start = (this.currentPage - 1) * this.pageSize;
+      const end = start + this.pageSize;
       return this.filteredData?.slice(start, end);
     },
     filteredData() {
@@ -359,19 +430,23 @@ export default {
 
       if (this.filter.search) {
         const search = this.filter.search.toLowerCase();
-        list = list.filter(item =>
-          `${item.companyName} ${item.name + item.surname}`.toLowerCase().includes(search)
+        list = list.filter((item) =>
+          `${item.companyName} ${item.name + item.surname}`
+            .toLowerCase()
+            .includes(search)
         );
       }
 
       if (this.filter.group) {
-        list = list.filter(item => String(item.group) === String(this.filter.group));
+        list = list.filter(
+          (item) => String(item.group) === String(this.filter.group)
+        );
       }
 
       return list;
     },
     getRouteList() {
-      return this.getCustomerList.filter(item => {
+      return this.getCustomerList.filter((item) => {
         if (this.filter.groupForRoute) {
           if (item.group !== Number(this.filter.groupForRoute)) return false;
         }
@@ -384,19 +459,26 @@ export default {
       });
     },
     getZoneName() {
-      return this.getZoneList.find(zone => (zone.value == this.filter.groupForRoute))?.label || "Bilinmeyen Bölge"; 
-    }
+      return (
+        this.getZoneList.find((zone) => zone.value == this.filter.groupForRoute)
+          ?.label || "Tüm Bölgeler"
+      );
+    },
   },
   methods: {
     openCreateRouteDialog() {
       this.createRouteDialog = true;
       const companyName = this.getCustomerList.companyName;
-      this.exportTableData = this.getCustomerList.map(item => ({
+      this.exportTableData = this.getCustomerList.map((item) => ({
         companyName: companyName,
         sellAmount: this.$options.filters.formatNumber(item.sellAmount),
         totalDebt: this.$options.filters.formatNumber(item.totalDebt),
-        totalCollection: this.$options.filters.formatNumber(item.totalCollection),
-        totalReceivable: this.$options.filters.formatNumber(item.totalReceivable),
+        totalCollection: this.$options.filters.formatNumber(
+          item.totalCollection
+        ),
+        totalReceivable: this.$options.filters.formatNumber(
+          item.totalReceivable
+        ),
       }));
       this.filter.groupForRoute = this.todayGroupNumber;
     },
@@ -409,37 +491,39 @@ export default {
 
       columns.forEach((column, index) => {
         if (index === 0) {
-          sums[index] = 'Toplam Alacak';
+          sums[index] = "Toplam";
           return;
         }
-        
+
         const isCalculatable =
           column?.property &&
-          (column.property.includes('totalCollection') ||
-          column.property.includes('totalReceivable') ||
-          column.property.includes('totalDebt'));
-        
+          (column.property.includes("totalCollection") ||
+            column.property.includes("totalReceivable") ||
+            column.property.includes("totalDebt"));
+
         if (isCalculatable) {
-          const values = this.getRouteList?.map(item => Number(item[column.property]));
+          const values = this.getRouteList?.map((item) =>
+            Number(item[column.property])
+          );
           const total = values?.reduce((prev, curr) => {
             const value = Number(curr);
             return !isNaN(value) ? prev + value : prev;
           }, 0);
-  
-          sums[index] = formatNumber(total) + ' ₺';
+
+          sums[index] = formatNumber(total) + " ₺";
         } else {
-          sums[index] = '';
+          sums[index] = "";
         }
       });
 
       return sums;
     },
     async printRoute() {
-      const list = this.getRouteList
-        .map((item) => ({
-          remaining: item.totalDebt,
-          companyName: item.companyName
-        }));
+      const list = this.getRouteList.map((item) => ({
+        remaining: item.totalDebt,
+        companyName: item.companyName,
+        customerId: item.id,
+      }));
 
       const totalDebt = list?.reduce((acc, item) => item.remaining + acc, 0);
 
@@ -450,34 +534,119 @@ export default {
           { text: "Satış Tutarı", bold: true },
           { text: "Tahs. Tutarı", bold: true },
           { text: "Güncel Borç(₺)", bold: true },
-          { text: "Açıklama", bold: true }
-        ]
+          { text: "Açıklama", bold: true },
+        ],
       ];
 
-      list.forEach(transaction => {
+      list.forEach((transaction) => {
+        // Main Company Row (boş bırakılan alanlar, ziyarette doldurmak için)
         body.push([
-          { text: transaction.companyName, margin: [0, 6, 0, 6]},
-          { text: "", margin: [0, 6, 0, 6]},
-          { text: "", margin: [0, 6, 0, 6]},
-          { text: "", margin: [0, 6, 0, 6]},
-          { text: this.$options.filters.formatNumber(transaction.remaining), margin: [0, 6, 0, 6], valign: 'middle'},
-          { text: "", margin: [0, 6, 0, 6]},
+          { text: transaction.companyName, margin: [0, 0, 0, 0], bold: true },
+          { text: "", margin: [0, 0, 0, 0] },
+          { text: "", margin: [0, 0, 0, 0] },
+          { text: "", margin: [0, 0, 0, 0] },
+          {
+            text: this.$options.filters.formatNumber(transaction.remaining),
+            margin: [0, 0, 0, 0],
+            bold: true,
+          },
+          { text: "", margin: [0, 0, 0, 0] },
         ]);
+
+        // Geçmiş işlemleri bulup ekle (Mock data kısıtlı olduğu için eşleşmezse ilkini baz al)
+        let customerTransactionsData = this.getTransactionList.find(
+          (t) =>
+            String(t.customerId) === String(transaction.customerId) ||
+            t.companyName === transaction.companyName
+        );
+        if (!customerTransactionsData && this.getTransactionList.length > 0) {
+          customerTransactionsData = this.getTransactionList[0]; // Görsel test için
+        }
+
+        if (
+          customerTransactionsData &&
+          customerTransactionsData.transactions &&
+          customerTransactionsData.transactions.length > 0
+        ) {
+          // Son 3 işlemi al (tarihe göre azalan sırala, ilk 3'ü al)
+          const sortedTransactions = [...customerTransactionsData.transactions]
+            .sort(
+              (a, b) =>
+                new Date(b.transactionDate) - new Date(a.transactionDate)
+            )
+            .slice(0, 5);
+
+          // Kronolojik göstermek için tekrar eskiden yeniye sırala
+          sortedTransactions.sort(
+            (a, b) => new Date(a.transactionDate) - new Date(b.transactionDate)
+          );
+
+          sortedTransactions.forEach((t) => {
+            const isSell = t.transactionType === 0;
+            body.push([
+              {
+                text: "└ Geçmiş İşlem",
+                margin: [0, 2, 0, 2],
+                fontSize: 8,
+                color: "#777",
+                italics: true,
+                border: [false, false, false, false],
+              },
+              {
+                text: this.$options.filters.formatDate(t.transactionDate),
+                margin: [0, 2, 0, 2],
+                fontSize: 9,
+                color: "#555",
+                border: [false, false, false, false],
+              },
+              {
+                text: isSell
+                  ? this.$options.filters.formatNumber(t.sellAmount)
+                  : "-",
+                margin: [0, 2, 0, 2],
+                fontSize: 9,
+                color: "#555",
+                border: [false, false, false, false],
+              },
+              {
+                text: !isSell
+                  ? this.$options.filters.formatNumber(t.collectionAmount)
+                  : "-",
+                margin: [0, 2, 0, 2],
+                fontSize: 9,
+                color: "#555",
+                border: [false, false, false, false],
+              },
+              {
+                text: "",
+                margin: [0, 2, 0, 2],
+                border: [false, false, false, false],
+              },
+              {
+                text: t.note || "",
+                margin: [0, 2, 0, 2],
+                fontSize: 9,
+                color: "#555",
+                border: [false, false, false, false],
+              },
+            ]);
+          });
+        }
       });
 
       body.push([
         { text: "", colSpan: 3, alignment: "left" },
         "",
         "",
-        { text: "Toplam:", bold: true, fillColor: '#ddd' },
+        { text: "Toplam:", bold: true, fillColor: "#ddd" },
         { text: this.$options.filters.formatNumber(totalDebt), bold: true },
-        ""
+        "",
       ]);
 
       async function toBase64(url) {
         const res = await fetch(url);
         const blob = await res.blob();
-        return await new Promise(resolve => {
+        return await new Promise((resolve) => {
           const reader = new FileReader();
           reader.onloadend = () => resolve(reader.result);
           reader.readAsDataURL(blob);
@@ -491,34 +660,39 @@ export default {
           {
             image: logo,
             width: 150,
-            alignment: 'center',
-            margin: [0, -20, 0, 0]
+            alignment: "center",
+            margin: [0, -20, 0, 0],
           },
-          { text: `[${this.getZoneName}]`, style: "zoneName" },
+          {
+            text: `Bölge: ${this.getZoneName} - ${new Date().toLocaleDateString(
+              "tr-TR"
+            )}`,
+            style: "zoneName",
+          },
           {
             table: {
               headerRows: 1,
               widths: [100, 55, 55, 55, 70, "*"],
-              body
+              body,
             },
             layout: {
-              fillColor: rowIndex => rowIndex === 0 ? '#CCCCCC' : null
+              fillColor: (rowIndex) => (rowIndex === 0 ? "#CCCCCC" : null),
             },
-            fontSize: 10
-          }
+            fontSize: 10,
+          },
         ],
         styles: {
           header: {
             bold: false,
             margin: [-30, 0, -30, 10],
-            alignment: 'center'
+            alignment: "center",
           },
           zoneName: {
             bold: true,
             margin: [0, 0, 0, 10],
-            alignment: 'left'
-          }
-        }
+            alignment: "left",
+          },
+        },
       };
 
       pdfMake.createPdf(docDefinition).open();
@@ -527,27 +701,27 @@ export default {
       this.currentPage = page;
     },
     isOpenDialog(type, row = {}) {
-      this.isEdit = type === 'edit';
+      this.isEdit = type === "edit";
       this.customerDetail = row;
-      
+
       if (this.isEdit) {
         this.fillForm(row);
       } else {
         this.resetFormData();
       }
-      this.formData.companyName = row.companyName || '';
+      this.formData.companyName = row.companyName || "";
       this.dialogVisible = true;
     },
     saveChanges() {
       if (this.isEdit) {
         this.$notify.success({
-          title: 'İşlem Başarılı',
-          message: 'Müşteri Bilgileri Güncellendi'
+          title: "İşlem Başarılı",
+          message: "Müşteri Bilgileri Güncellendi",
         });
       } else {
         this.$notify.success({
-          title: 'İşlem Başarılı',
-          message: 'Müşteri Oluşturuldu'
+          title: "İşlem Başarılı",
+          message: "Müşteri Oluşturuldu",
         });
       }
       this.closePopup();
@@ -555,8 +729,8 @@ export default {
     deleteCustomer() {
       if (this.currentCustomer) {
         this.$notify.success({
-          title: 'İşlem Başarılı',
-          message: 'Müşteri Silindi'
+          title: "İşlem Başarılı",
+          message: "Müşteri Silindi",
         });
         this.closeDeletePopup();
       }
@@ -585,45 +759,50 @@ export default {
         phone: "",
         address: "",
         group: "",
-        note: ""
+        note: "",
       };
     },
     handleClick(row) {
-      this.$router.push({ name: 'transactions', query: { q: row.id, cn: row.companyName } });
+      this.$router.push({
+        name: "transactions",
+        query: { q: row.id, cn: row.companyName },
+      });
     },
     getSummaries(param) {
       const { columns } = param;
       const sums = [];
-      
+
       columns.forEach((column, index) => {
         if (index === 0) {
-          sums[index] = 'Toplam:';
+          sums[index] = "Toplam:";
           return;
         }
-        
+
         const isDebtColumn =
           column?.property &&
-          (column.property.includes('totalCollection') ||
-          column.property.includes('totalSale') ||
-          column.property.includes('totalDebt'));
+          (column.property.includes("totalCollection") ||
+            column.property.includes("totalSale") ||
+            column.property.includes("totalDebt"));
 
-          if (isDebtColumn) {
-            const values = this.filteredData?.map(item => Number(item[column.property]));
-            const total = values?.reduce((prev, curr) => {
-              const value = Number(curr);
-              return !isNaN(value) ? prev + value : prev;
-            }, 0);
+        if (isDebtColumn) {
+          const values = this.filteredData?.map((item) =>
+            Number(item[column.property])
+          );
+          const total = values?.reduce((prev, curr) => {
+            const value = Number(curr);
+            return !isNaN(value) ? prev + value : prev;
+          }, 0);
 
-            sums[index] = formatNumber(total) + ' ₺';
-          } else {
-            sums[index] = '';
-          }
+          sums[index] = formatNumber(total) + " ₺";
+        } else {
+          sums[index] = "";
+        }
       });
 
       return sums;
     },
   },
-}
+};
 </script>
 
 <style lang="scss" scoped>
