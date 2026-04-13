@@ -7,14 +7,16 @@
           <span class="page-title-icon bg-gradient-success text-white mr-2">
             <i class="mdi mdi-routes menu-icon"></i>
           </span>
-          Bölge Yönetimi ({{filteredData.length}})
+          Bölge Yönetimi ({{ filteredData.length }})
         </div>
         <el-button
           v-if="paginatedData.length < 6"
           type="success"
           size="medium"
           icon="el-icon-circle-plus"
-          @click="isOpenDialog('add')">Bölge Ekle</el-button>
+          @click="isOpenDialog('add')"
+          >Bölge Ekle</el-button
+        >
       </h3>
     </div>
     <div class="card">
@@ -47,8 +49,21 @@
               </el-table-column>
               <el-table-column fixed="right" label="İşlem" width="95">
                 <template v-slot="scope">
-                  <el-button type="primary" size="small" icon="el-icon-edit" circle @click="isOpenDialog('edit', scope.row)"></el-button>
-                  <el-button type="danger" size="small" icon="el-icon-delete" circle @click="deleteGroup(scope.row)" :disabled="scope.row.totalOutputWeight > 0"></el-button>
+                  <el-button
+                    type="primary"
+                    size="small"
+                    icon="el-icon-edit"
+                    circle
+                    @click="isOpenDialog('edit', scope.row)"
+                  ></el-button>
+                  <el-button
+                    type="danger"
+                    size="small"
+                    icon="el-icon-delete"
+                    circle
+                    @click="deleteGroup(scope.row)"
+                    :disabled="scope.row.totalOutputWeight > 0"
+                  ></el-button>
                 </template>
               </el-table-column>
             </el-table>
@@ -64,14 +79,18 @@
       @close="closePopup"
     >
       <el-form label-position="top" :model="formData" label-width="100px">
-        <el-row :gutter="16">          
+        <el-row :gutter="16">
           <el-col :span="12">
             <el-form-item label="Bölge Adı">
-              <el-input v-model="formData.groupName" maxlength="24" show-word-limit></el-input>
+              <el-input
+                v-model="formData.groupName"
+                maxlength="24"
+                show-word-limit
+              ></el-input>
             </el-form-item>
           </el-col>
           <el-col :span="12">
-            <el-form-item label="Tahsilat Tarihi" class="picker-width">
+            <el-form-item label="Bölge Günü" class="picker-width">
               <el-select
                 class="w-full"
                 v-model="formData.groupDay"
@@ -119,23 +138,24 @@ export default {
         groupDay: "",
       },
       filter: {
-        search: ""
+        search: "",
       },
-    }
+    };
   },
   computed: {
     getZoneList() {
       return this.groupList;
     },
     getDayLabel() {
-      return day => GROUP_DAY_LIST.find(d => d.value === Number(day))?.label || "-";
+      return (day) =>
+        GROUP_DAY_LIST.find((d) => d.value === Number(day))?.label || "-";
     },
     getGroupDayList() {
       return GROUP_DAY_LIST;
     },
     paginatedData() {
-      const start = (this.currentPage - 1) * this.pageSize
-      const end = start + this.pageSize
+      const start = (this.currentPage - 1) * this.pageSize;
+      const end = start + this.pageSize;
       return this.filteredData?.slice(start, end);
     },
     filteredData() {
@@ -143,15 +163,13 @@ export default {
 
       if (this.filter.search) {
         const search = this.filter.search.toLowerCase();
-        list = list.filter(item =>
-          item.name.toLowerCase().includes(search)
-        );
+        list = list.filter((item) => item.name.toLowerCase().includes(search));
       }
 
       return list.sort((a, b) => a.day - b.day);
     },
     getPopupTitle() {
-      return this.isEditMode ? 'Bölgeyi Düzenle' : 'Yeni Bölge Oluştur';
+      return this.isEditMode ? "Bölgeyi Düzenle" : "Yeni Bölge Oluştur";
     },
   },
   methods: {
@@ -170,23 +188,29 @@ export default {
       this.dialogVisible = false;
     },
     deleteGroup(row) {
-      this.$confirm(`${row.name} bölgeyi silmek istediğinize emin misiniz?`, 'Onay', {
-        confirmButtonText: 'Evet',
-        cancelButtonText: 'Hayır',
-        type: 'warning'
-      }).then(() => {
-        const index = this.groupList.findIndex(g => g.id === row.id);
-        if (index !== -1) {
-          this.groupList.splice(index, 1);
-          this.$message.success('Bölge başarıyla silindi.');
+      this.$confirm(
+        `${row.name} bölgeyi silmek istediğinize emin misiniz?`,
+        "Onay",
+        {
+          confirmButtonText: "Evet",
+          cancelButtonText: "Hayır",
+          type: "warning",
         }
-      }).catch(() => {
-        this.$message.info('Silme işlemi iptal edildi.');
-      });
+      )
+        .then(() => {
+          const index = this.groupList.findIndex((g) => g.id === row.id);
+          if (index !== -1) {
+            this.groupList.splice(index, 1);
+            this.$message.success("Bölge başarıyla silindi.");
+          }
+        })
+        .catch(() => {
+          this.$message.info("Silme işlemi iptal edildi.");
+        });
     },
     async isOpenDialog(type, row = {}) {
-      this.isEditMode = type === 'edit';
-      
+      this.isEditMode = type === "edit";
+
       if (this.isEditMode) {
         this.selectedRow = row;
         this.fillForm(row);
@@ -204,16 +228,19 @@ export default {
         this.$message.error("Lütfen tüm alanları doldurun.");
         return;
       }
-      
-      const exists = this.groupList.some(g => String(g.day) === String(day));
+
+      const exists = this.groupList.some((g) => String(g.day) === String(day));
       if (exists) {
-        const dayLabel = GROUP_DAY_LIST.find(d => d.value === day)?.label || "";
+        const dayLabel =
+          GROUP_DAY_LIST.find((d) => d.value === day)?.label || "";
         this.$message.warning(`${dayLabel} günü için zaten bir bölge atanmış!`);
         return;
       }
 
       if (this.isEditMode) {
-        const index = this.groupList.findIndex(g => g.id === this.selectedRow.id);
+        const index = this.groupList.findIndex(
+          (g) => g.id === this.selectedRow.id
+        );
         if (index !== -1) {
           this.groupList[index].name = name;
           this.groupList[index].day = day;
@@ -223,7 +250,7 @@ export default {
         this.groupList.push({
           id: Date.now(),
           name: name,
-          day: day
+          day: day,
         });
         this.$message.success("Bölge başarıyla eklendi.");
       }
@@ -231,5 +258,5 @@ export default {
       this.dialogVisible = false;
     },
   },
-}
+};
 </script>

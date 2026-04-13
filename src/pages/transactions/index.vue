@@ -69,6 +69,7 @@
           <div class="col-3 col-sm-3 col-md-3 mt-3 ml-auto">
             <div class="d-flex justify-content-end">
               <h4 class="text-lg">Toplam Borç:</h4>
+              <!-- buradaki alan direkt servisten gelmeli, işlem sonraları direkt update olabilir. çünkü filtre yapınca değişiyor-->
               <span class="ml-2" style="font-size: 18px"
                 >{{ totalDebt | formatNumber }} ₺</span
               >
