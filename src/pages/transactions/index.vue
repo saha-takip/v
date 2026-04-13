@@ -522,7 +522,7 @@
 </template>
 
 <script>
-import data from "@/mock/transactions.json";
+import { supabase } from "@/supabase";
 import { formatNumber } from "@/util/helpers";
 import PriceInput from "@/components/forms/PriceInput.vue";
 import globalMixin from "@/mixins/global.mixin.js";
@@ -581,50 +581,11 @@ export default {
     };
   },
   mounted() {
-    const { q, cn } = this.$route.query;
+    const { q } = this.$route.query;
     this.currentCustomer.id = q;
-    this.currentCustomer.currentCompany = cn;
-
-    if (Array.isArray(data)) {
-      // eğer mock tüm müşterilerin listesi ise (her item.transactions içerir)
-      // bizim ekran burada tek bir müşterinin ekstresini gösteriyorsa
-      // currentCustomer.id ile eşleşeni çekebiliriz:
-      if (this.currentCustomer.id) {
-        const matched = data.find(
-          (d) => String(d.customerId) === String(this.currentCustomer.id)
-        );
-        if (matched) {
-          this.transactions = (matched.transactions || []).map((t) => ({
-            ...t,
-            isEditing: false,
-          }));
-          this.currentRemaining = matched.remaining || 0;
-        } else {
-          // fallback: tüm first customer's transactions
-          this.transactions = (data[0]?.transactions || []).map((t) => ({
-            ...t,
-            isEditing: false,
-          }));
-          this.currentRemaining = data[0]?.remaining || 0;
-        }
-      } else {
-        // eğer query yoksa genel davranış: ilk elemanı al
-        this.transactions = (data[0]?.transactions || []).map((t) => ({
-          ...t,
-          isEditing: false,
-        }));
-        this.currentRemaining = data[0]?.remaining || 0;
-      }
-    } else if (data && typeof data === "object") {
-      // dosya tek bir müşteri objesi (senin paylaştığın format)
-      this.transactions = (data.transactions || []).map((t) => ({
-        ...t,
-        isEditing: false,
-      }));
-      this.currentRemaining = data.remaining || 0;
-    } else {
-      this.transactions = [];
-      this.currentRemaining = 0;
+    if (q) {
+      this.fetchCustomer(q);
+      this.fetchTransactions(q);
     }
   },
   computed: {
@@ -635,7 +596,7 @@ export default {
       return this.transactions || [];
     },
     getCurrentRemaining() {
-      return data.remaining;
+      return this.currentRemaining;
     },
     checkOutstandingDebt() {
       return this.isEditMode ? !this.isTransactionsDetail : "";
@@ -753,11 +714,13 @@ export default {
       return this.currentCustomer.currentCompany;
     },
     totalDebt() {
-      const totalSell = this.filteredData.reduce(
+      // Filtreden bağımsız, tüm kayıtlar üzerinden hesaplama
+      const all = this.getTransactionList;
+      const totalSell = all.reduce(
         (acc, curr) => acc + (Number(curr.sellAmount) || 0),
         0
       );
-      const totalCollection = this.filteredData.reduce(
+      const totalCollection = all.reduce(
         (acc, curr) => acc + (Number(curr.collectionAmount) || 0),
         0
       );
@@ -779,6 +742,46 @@ export default {
     },
   },
   methods: {
+    async fetchCustomer(customerId) {
+      const { data, error } = await supabase
+        .from("customers")
+        .select("company_name")
+        .eq("id", customerId)
+        .single();
+
+      if (!error && data) {
+        this.currentCustomer.currentCompany = data.company_name;
+      }
+    },
+    async fetchTransactions(customerId) {
+      const tenant_id = localStorage.getItem("tenant_id");
+      if (!tenant_id || !customerId) return;
+
+      const { data, error } = await supabase
+        .from("transactions")
+        .select("*")
+        .eq("customer_id", customerId)
+        .eq("tenant_id", tenant_id)
+        .order("date", { ascending: false });
+
+      if (error) {
+        console.error("fetchTransactions error:", error);
+        return;
+      }
+
+      this.transactions = (data || []).map((t) => ({
+        id: t.id,
+        transactionType: t.type === "Satis" ? 0 : 1,
+        sellAmount: Number(t.sell_amount || 0),
+        collectionAmount: Number(t.collection_amount || 0),
+        collectionType: t.collection_type || "-",
+        note: t.description || "",
+        transactionDate: t.date,
+        isEditing: false,
+        // orijinal DB alanları (güncelleme için)
+        _raw: t,
+      }));
+    },
     changeDate(val) {
       this.currentPage = 1;
       this.filter.transactionDate = val.map((d) => {
@@ -923,41 +926,42 @@ export default {
       this.disableAdd = false;
       row.isEditing = false;
     },
-    saveChanges(row) {
-      if (row.transactionType) {
+    async saveChanges(row) {
+      const updatePayload = {};
+
+      if (row.transactionType === 1) {
         // Tahsilat
-        if (
-          this.currentRow.collectionAmount != null &&
-          this.currentRow.collectionAmount !== ""
-        ) {
-          row.collectionAmount = Number(this.currentRow.collectionAmount);
+        if (this.currentRow.collectionAmount != null && this.currentRow.collectionAmount !== "") {
+          updatePayload.collection_amount = Number(this.currentRow.collectionAmount);
         }
-        if (
-          this.currentRow.collectionType != null &&
-          this.currentRow.collectionType !== ""
-        ) {
-          row.collectionType = this.currentRow.collectionType;
+        if (this.currentRow.collectionType != null && this.currentRow.collectionType !== "") {
+          updatePayload.collection_type = this.currentRow.collectionType;
         }
       } else {
         // Satış
-        if (
-          this.currentRow.sellAmount != null &&
-          this.currentRow.sellAmount !== ""
-        ) {
-          row.sellAmount = Number(this.currentRow.sellAmount);
+        if (this.currentRow.sellAmount != null && this.currentRow.sellAmount !== "") {
+          updatePayload.sell_amount = Number(this.currentRow.sellAmount);
         }
       }
 
       if (this.currentRow.note != null) {
-        row.note = this.currentRow.note;
+        updatePayload.description = this.currentRow.note;
+      }
+
+      const { error } = await supabase
+        .from("transactions")
+        .update(updatePayload)
+        .eq("id", row.id);
+
+      if (error) {
+        console.error("update error:", error);
+        this.$notify.error({ title: "Hata", message: "Güncelleme başarısız." });
+        return;
       }
 
       row.isEditing = false;
-
-      this.$notify.success({
-        title: "Başarılı",
-        message: "İşlem Gerçekleştirildi",
-      });
+      this.$notify.success({ title: "Başarılı", message: "İşlem güncellendi." });
+      await this.fetchTransactions(this.currentCustomer.id);
     },
     editRow(row) {
       this.getTransactionList.forEach((r) => (r.isEditing = false));
@@ -1003,31 +1007,84 @@ export default {
         collectionTypeName: "",
       };
     },
-    saveTempRow(row) {
-      const newId = Math.floor(Math.random() * 999999);
+    async saveTempRow(row) {
+      const tenant_id = localStorage.getItem("tenant_id");
+      const customer_id = this.currentCustomer.id;
 
-      const newRecord = {
-        ...row,
-        id: newId,
-        isEditing: false,
-        collectionTypeName:
-          row.transactionType === 1
-            ? row.collectionType === 0
-              ? "Nakit"
-              : "Kredi Kartı"
-            : "",
-      };
+      if (!tenant_id || !customer_id) {
+        this.$notify.error({ title: "Hata", message: "Oturum bilgisi eksik." });
+        return;
+      }
 
-      this.transactions.unshift(newRecord);
-      localStorage.setItem("payload", newRecord);
+      let payload;
 
-      this.$notify.success({
-        title: "Başarılı",
-        message: "İşlem Gerçekleştirildi",
-      });
+      if (row.transactionType === 0) {
+        // Satış
+        payload = {
+          type: "Satis",
+          sell_amount: Number(row.sellAmount) || 0,
+          collection_amount: 0,
+          collection_type: "-",
+          description: row.note || "",
+          tenant_id,
+          customer_id,
+          date: new Date().toISOString(),
+        };
+      } else {
+        // Tahsilat
+        payload = {
+          type: "Tahsilat",
+          sell_amount: 0,
+          collection_amount: Number(row.collectionAmount) || 0,
+          collection_type: row.collectionType || "-",
+          description: row.note || "",
+          tenant_id,
+          customer_id,
+          date: new Date().toISOString(),
+        };
+      }
 
+      const { error } = await supabase.from("transactions").insert([payload]);
+
+      if (error) {
+        console.error("insert error:", error);
+        this.$notify.error({ title: "Hata", message: "Kayıt eklenemedi." });
+        return;
+      }
+
+      this.$notify.success({ title: "Başarılı", message: "İşlem kaydedildi." });
       this.tempRow = null;
       this.disableAdd = false;
+      await this.fetchTransactions(customer_id);
+    },
+    async open(row) {
+      try {
+        await this.$confirm(
+          "Bu işlemi silmek istediğinize emin misiniz?",
+          "Onay",
+          {
+            confirmButtonText: "Evet, Sil",
+            cancelButtonText: "Hayır",
+            type: "warning",
+          }
+        );
+
+        const { error } = await supabase
+          .from("transactions")
+          .delete()
+          .eq("id", row.id);
+
+        if (error) {
+          console.error("delete error:", error);
+          this.$notify.error({ title: "Hata", message: "Silme başarısız." });
+          return;
+        }
+
+        this.$notify.success({ title: "Başarılı", message: "İşlem silindi." });
+        await this.fetchTransactions(this.currentCustomer.id);
+      } catch {
+        // İptal edildi
+      }
     },
     closePopup() {
       this.dialogVisible = false;
@@ -1140,12 +1197,16 @@ export default {
   },
   watch: {
     $route: {
-      handler(value) {
-        if (value.query?.q) {
-          this.currentCustomer.id = value.query.q;
+      async handler(value) {
+        const q = value.query?.q;
+        if (q) {
+          this.currentCustomer.id = q;
+          await this.fetchCustomer(q);
+          await this.fetchTransactions(q);
           return;
         }
         this.currentCustomer.id = null;
+        this.transactions = [];
       },
       immediate: true,
       deep: true,

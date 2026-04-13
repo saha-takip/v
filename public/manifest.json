@@ -1,0 +1,32 @@
+{
+    "name": "Furkan Gıda Pazarlama",
+    "short_name": "FurkanGıda",
+    "start_url": "/",
+    "display": "standalone",
+    "orientation": "any",
+    "background_color": "#ffffff",
+    "theme_color": "#42b983",
+    "description": "Furkan Gıda Pazarlama şirketi için satış/tahsilat işlemlerini takip etmek üzere geliştirilmiştir.",
+    "icons": [
+        {
+            "src": "/mini-logo.png",
+            "sizes": "192x192",
+            "type": "image/png"
+        }
+    ],
+    "screenshots": [
+        {
+            "src": "/medium-logo.png",
+            "sizes": "320x320",
+            "type": "image/png",
+            "form_factor": "wide",
+            "label": "Furkan Gıda Masaüstü"
+        },
+        {
+            "src": "/medium-logo.png",
+            "sizes": "320x320",
+            "type": "image/png",
+            "label": "Furkan Gıda Mobil"
+        }
+    ]
+}

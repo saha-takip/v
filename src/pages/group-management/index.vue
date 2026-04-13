@@ -39,7 +39,7 @@
             >
               <el-table-column prop="name" label="Bölge Adı" width="180">
                 <template v-slot="scope">
-                  {{ scope.row.name }} {{ scope.row.surname }}
+                  {{ scope.row.name }}
                 </template>
               </el-table-column>
               <el-table-column prop="day" label="Gün">
@@ -61,7 +61,7 @@
                     size="small"
                     icon="el-icon-delete"
                     circle
-                    @click="deleteGroup(scope.row)"
+                    @click="deleteZone(scope.row)"
                     :disabled="scope.row.totalOutputWeight > 0"
                   ></el-button>
                 </template>
@@ -120,7 +120,7 @@
 </template>
 
 <script>
-import groups from "@/mock/groups.json";
+import { supabase } from "@/supabase";
 import { GROUP_DAY_LIST } from "@/util/constants";
 
 export default {
@@ -131,7 +131,7 @@ export default {
       currentPage: 1,
       isEditMode: false,
       dialogVisible: false,
-      groupList: [...groups],
+      groupList: [],
       selectedRow: null,
       formData: {
         groupName: "",
@@ -141,6 +141,9 @@ export default {
         search: "",
       },
     };
+  },
+  mounted() {
+    this.fetchGroups();
   },
   computed: {
     getZoneList() {
@@ -163,22 +166,42 @@ export default {
 
       if (this.filter.search) {
         const search = this.filter.search.toLowerCase();
-        list = list.filter((item) => item.name.toLowerCase().includes(search));
+        list = list.filter(
+          (item) =>
+            item.name.toLowerCase().includes(search) ||
+            this.getDayLabel(item.day).toLowerCase().includes(search)
+        );
       }
 
-      return list.sort((a, b) => a.day - b.day);
+      return [...list].sort((a, b) => a.day - b.day);
     },
     getPopupTitle() {
       return this.isEditMode ? "Bölgeyi Düzenle" : "Yeni Bölge Oluştur";
     },
   },
   methods: {
+    async fetchGroups() {
+      const tenant_id = localStorage.getItem("tenant_id");
+      if (!tenant_id) return;
+
+      const { data, error } = await supabase
+        .from("zones")
+        .select("*")
+        .eq("tenant_id", tenant_id);
+
+      if (error) {
+        console.error(error);
+        return;
+      }
+
+      this.groupList = data;
+    },
     handlePageChange(page) {
       this.currentPage = page;
     },
     fillForm(row) {
       this.formData.groupName = row.name;
-      this.formData.groupDay = row.day;
+      this.formData.groupDay = Number(row.day);
     },
     resetFormData() {
       this.formData.groupName = "";
@@ -187,9 +210,9 @@ export default {
     closePopup() {
       this.dialogVisible = false;
     },
-    deleteGroup(row) {
+    deleteZone(row) {
       this.$confirm(
-        `${row.name} bölgeyi silmek istediğinize emin misiniz?`,
+        `${row.name} bölgesi silmek istediğinize emin misiniz?`,
         "Onay",
         {
           confirmButtonText: "Evet",
@@ -197,14 +220,24 @@ export default {
           type: "warning",
         }
       )
-        .then(() => {
-          const index = this.groupList.findIndex((g) => g.id === row.id);
-          if (index !== -1) {
-            this.groupList.splice(index, 1);
+        .then(async () => {
+          const { data, error } = await supabase
+            .from("zones")
+            .delete()
+            .eq("id", row.id);
+
+          if (!error) {
+            await this.fetchGroups();
             this.$message.success("Bölge başarıyla silindi.");
+          } else {
+            console.error(error, data);
+            this.$message.error(
+              "Silinemedi. Lütfen yetkinizi veya bağlantıyı kontrol edin."
+            );
           }
         })
-        .catch(() => {
+        .catch((err) => {
+          if (err !== "cancel") console.error(err);
           this.$message.info("Silme işlemi iptal edildi.");
         });
     },
@@ -220,16 +253,19 @@ export default {
       }
       this.dialogVisible = true;
     },
-    saveGroup() {
+    async saveGroup() {
       const name = this.formData.groupName?.trim();
       const day = this.formData.groupDay;
+      const tenant_id = localStorage.getItem("tenant_id");
 
       if (!name || !day) {
         this.$message.error("Lütfen tüm alanları doldurun.");
         return;
       }
 
-      const exists = this.groupList.some((g) => String(g.day) === String(day));
+      const exists = this.groupList.some(
+        (g) => String(g.day) === String(day) && g.id !== this.selectedRow?.id
+      );
       if (exists) {
         const dayLabel =
           GROUP_DAY_LIST.find((d) => d.value === day)?.label || "";
@@ -238,21 +274,36 @@ export default {
       }
 
       if (this.isEditMode) {
-        const index = this.groupList.findIndex(
-          (g) => g.id === this.selectedRow.id
-        );
-        if (index !== -1) {
-          this.groupList[index].name = name;
-          this.groupList[index].day = day;
+        const { data, error } = await supabase
+          .from("zones")
+          .update({ name: name, day: day })
+          .eq("id", this.selectedRow.id)
+          .select();
+
+        if (!error && data && data.length > 0) {
+          await this.fetchGroups();
+          this.$message.success("Bölge başarıyla güncellendi.");
+        } else {
+          console.error(error, data);
+          this.$message.error(
+            "Güncellenemedi. Lütfen yetkinizi veya bağlantıyı kontrol edin."
+          );
         }
-        this.$message.success("Bölge başarıyla güncellendi.");
       } else {
-        this.groupList.push({
-          id: Date.now(),
-          name: name,
-          day: day,
-        });
-        this.$message.success("Bölge başarıyla eklendi.");
+        const { data, error } = await supabase
+          .from("zones")
+          .insert([{ name: name, day: day, tenant_id: tenant_id }])
+          .select();
+
+        if (!error && data && data.length > 0) {
+          await this.fetchGroups();
+          this.$message.success("Bölge başarıyla eklendi.");
+        } else {
+          console.error(error, data);
+          this.$message.error(
+            "Eklenemedi. Lütfen yetkinizi veya bağlantıyı kontrol edin."
+          );
+        }
       }
 
       this.dialogVisible = false;

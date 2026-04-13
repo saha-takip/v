@@ -68,9 +68,9 @@
               <el-table-column prop="companyName" label="Firma Adı" width="180">
                 <template v-slot="scope">{{ scope.row.companyName }}</template>
               </el-table-column>
-              <el-table-column prop="name" label="Firma Yetkilisi">
+              <el-table-column prop="companyAuthor" label="Firma Yetkilisi">
                 <template v-slot="scope">
-                  {{ scope.row.name }} {{ scope.row.surname }}
+                  {{ scope.row.companyAuthor }}
                 </template>
               </el-table-column>
               <el-table-column
@@ -131,7 +131,6 @@
                 <template v-slot="scope">
                   <div class="process">
                     <el-button
-                      v-if="scope.row.isProcess"
                       type="success"
                       size="small"
                       icon="el-icon-notebook-2"
@@ -139,7 +138,7 @@
                       >Hesap Ekstresi</el-button
                     >
                     <el-button
-                      v-if="!scope.row.isProcess"
+                      v-if="false"
                       type="danger"
                       size="small"
                       icon="el-icon-delete"
@@ -188,7 +187,7 @@
           </el-col>
           <el-col :span="12">
             <el-form-item label="Yetkili Adı Soyadı">
-              <el-input v-model="formData.name" />
+              <el-input v-model="formData.companyAuthor" />
             </el-form-item>
           </el-col>
         </el-row>
@@ -362,7 +361,7 @@
 </template>
 
 <script>
-import customers from "@/mock/customers.json";
+import { supabase } from "@/supabase";
 import globalMixin from "@/mixins/global.mixin.js";
 import { formatNumber } from "@/util/helpers";
 import dataAll from "@/mock/transactions-all.js";
@@ -386,7 +385,7 @@ export default {
       customerDetail: {},
       exportTableData: [],
       formData: {
-        name: "",
+        companyAuthor: "",
         companyName: "",
         phone: "",
         address: "",
@@ -399,11 +398,15 @@ export default {
         visitType: "Tümü",
         groupForRoute: "",
       },
+      customerList: [],
     };
+  },
+  mounted() {
+    this.fetchCustomers();
   },
   computed: {
     getCustomerList() {
-      return customers;
+      return this.customerList;
     },
     getTransactionList() {
       return dataAll;
@@ -431,7 +434,7 @@ export default {
       if (this.filter.search) {
         const search = this.filter.search.toLowerCase();
         list = list.filter((item) =>
-          `${item.companyName} ${item.name + item.surname}`
+          `${item.companyName} ${item.companyAuthor || ""}`
             .toLowerCase()
             .includes(search)
         );
@@ -466,6 +469,74 @@ export default {
     },
   },
   methods: {
+    async fetchCustomers() {
+      const tenant_id = localStorage.getItem("tenant_id");
+      if (!tenant_id) return;
+
+      const { data: customersData, error: customersError } = await supabase
+        .from("customers")
+        .select(
+          `
+        *,
+        zones (
+          id,
+          name,
+          day
+        )
+      `
+        )
+        .eq("tenant_id", tenant_id);
+
+      if (customersError) {
+        console.error(customersError);
+        return;
+      }
+
+      const { data: transactionsData, error: transactionsError } =
+        await supabase
+          .from("transactions")
+          .select("customer_id, type, sell_amount, collection_amount")
+          .eq("tenant_id", tenant_id);
+
+      if (transactionsError) {
+        console.error(transactionsError);
+        return;
+      }
+
+      this.customerList = customersData.map((customer) => {
+        const customerTransactions = transactionsData.filter(
+          (t) => t.customer_id === customer.id
+        );
+
+        let totalSale = 0;
+        let totalCollection = 0;
+
+        customerTransactions.forEach((t) => {
+          if (t.type === "Satis") {
+            totalSale += Number(t.sell_amount || 0);
+          } else if (t.type === "Tahsilat") {
+            totalCollection += Number(t.collection_amount || 0);
+          }
+        });
+
+        const totalDebt = totalSale - totalCollection;
+
+        return {
+          id: customer.id,
+          companyName: customer.company_name,
+          companyAuthor: customer.company_author,
+          phone: customer.phone,
+          address: customer.address,
+          group: customer.zones ? Number(customer.zones.day) : null,
+          createdDate: customer.created_at,
+          note: customer.note || "",
+          isProcess: customer.is_process,
+          totalSale: totalSale,
+          totalCollection: totalCollection,
+          totalDebt: totalDebt,
+        };
+      });
+    },
     openCreateRouteDialog() {
       this.createRouteDialog = true;
       const companyName = this.getCustomerList.companyName;
@@ -742,7 +813,7 @@ export default {
       this.deleteCustomerPopupStatus = false;
     },
     openDeletePopup(row) {
-      this.currentCustomer.id = row.name;
+      this.currentCustomer.id = row.id;
       this.currentCustomer.companyName = row.companyName;
       this.deleteCustomerPopupStatus = true;
     },
@@ -754,7 +825,7 @@ export default {
     },
     resetFormData() {
       this.formData = {
-        name: "",
+        companyAuthor: "",
         companyName: "",
         phone: "",
         address: "",
@@ -765,7 +836,7 @@ export default {
     handleClick(row) {
       this.$router.push({
         name: "transactions",
-        query: { q: row.id, cn: row.companyName },
+        query: { q: row.id },
       });
     },
     getSummaries(param) {
