@@ -43,6 +43,8 @@
               v-model="filter.group"
               filterable
               clearable
+              multiple
+              collapse-tags
               placeholder="Bölge seçin"
               @change="currentPage = 1"
             >
@@ -57,6 +59,7 @@
           </div>
           <div class="col-12 grid-margin">
             <el-table
+              v-loading="loading"
               :data="paginatedData"
               border
               style="width: 100%"
@@ -127,7 +130,7 @@
                   </el-tooltip>
                 </template>
               </el-table-column>
-              <el-table-column fixed="right" label="İşlem" width="190">
+              <el-table-column fixed="right" label="İşlem" width="235">
                 <template v-slot="scope">
                   <div class="process">
                     <el-button
@@ -138,13 +141,12 @@
                       >Hesap Ekstresi</el-button
                     >
                     <el-button
-                      v-if="false"
+                      v-if="!scope.row.isProcess"
                       type="danger"
                       size="small"
                       icon="el-icon-delete"
                       circle
                       @click="openDeletePopup(scope.row)"
-                      :disabled="scope.row.totalOutputWeight > 0"
                     ></el-button>
                     <el-button
                       type="primary"
@@ -273,7 +275,9 @@
                 v-model="filter.groupForRoute"
                 filterable
                 clearable
-                placeholder="Bögle adı ile ara"
+                multiple
+                collapse-tags
+                placeholder="Bölge seçin (Birden fazla seçilebilir)"
               >
                 <el-option
                   v-for="item in getZoneList"
@@ -328,19 +332,26 @@
         :summary-method="getSummariesRoute"
         empty-text="Rota için müşteri bulunamadı!"
       >
-        <el-table-column prop="companyName" label="Firma Adı" width="250">
+        <el-table-column
+          prop="companyName"
+          label="Firma Adı"
+          width="250"
+          sortable
+        >
         </el-table-column>
-        <el-table-column prop="totalDebt" label="Toplam Borç">
+        <el-table-column prop="totalDebt" label="Toplam Borç" sortable>
           <template v-slot="scope">
-            <label
-              v-if="scope.row.totalDebt > 0"
-              class="badge badge-gradient-info"
+            <label v-if="scope.row.totalDebt > 0" class="badge badge-danger"
               >{{ scope.row.totalDebt | formatNumber }}₺</label
             >
             <label v-else class="badge badge-gradient-success">Ödendi</label>
           </template>
         </el-table-column>
-        <el-table-column prop="totalCollection" label="Toplam Tahsilat">
+        <el-table-column
+          prop="totalCollection"
+          label="Toplam Tahsilat"
+          sortable
+        >
           <template v-slot="scope">
             {{ scope.row.totalCollection | formatNumber }}
           </template>
@@ -364,7 +375,6 @@
 import { supabase } from "@/supabase";
 import globalMixin from "@/mixins/global.mixin.js";
 import { formatNumber } from "@/util/helpers";
-import dataAll from "@/mock/transactions-all.js";
 import pdfMake from "pdfmake/build/pdfmake";
 import pdfFonts from "pdfmake/build/vfs_fonts";
 pdfMake.vfs = pdfFonts.pdfMake.vfs;
@@ -394,22 +404,47 @@ export default {
       },
       filter: {
         search: "",
-        group: "",
+        group: [],
         visitType: "Tümü",
-        groupForRoute: "",
+        groupForRoute: [],
       },
       customerList: [],
+      loading: false,
     };
   },
   mounted() {
     this.fetchCustomers();
   },
   computed: {
+    // Mock dataAll dosyasının yerini alacak dinamik liste
+    getSupabaseTransactionList() {
+      if (!this.customerList || !this.allTransactions) return [];
+
+      return this.customerList.map((customer) => {
+        // Bu müşteriye ait işlemleri filtrele
+        const customerTransactions = this.allTransactions.filter(
+          (t) => t.customer_id === customer.id
+        );
+
+        return {
+          customerId: customer.id,
+          companyName: customer.companyName,
+          remaining: customer.totalDebt,
+          // PDF'in beklediği iç tablo yapısı
+          transactions: customerTransactions.map((t) => ({
+            id: t.id,
+            transactionType: t.type === "Satis" ? 0 : 1, // 0: Satış, 1: Tahsilat mapping
+            transactionDate: t.date,
+            sellAmount: t.sell_amount,
+            collectionAmount: t.collection_amount,
+            collectionType: t.collection_type || "-",
+            note: t.description, // DB'deki description -> FE'deki note
+          })),
+        };
+      });
+    },
     getCustomerList() {
       return this.customerList;
-    },
-    getTransactionList() {
-      return dataAll;
     },
     getPopupTitle() {
       return this.isEdit
@@ -440,9 +475,9 @@ export default {
         );
       }
 
-      if (this.filter.group) {
-        list = list.filter(
-          (item) => String(item.group) === String(this.filter.group)
+      if (this.filter.group && this.filter.group.length > 0) {
+        list = list.filter((item) =>
+          this.filter.group.includes(Number(item.group))
         );
       }
 
@@ -450,8 +485,9 @@ export default {
     },
     getRouteList() {
       return this.getCustomerList.filter((item) => {
-        if (this.filter.groupForRoute) {
-          if (item.group !== Number(this.filter.groupForRoute)) return false;
+        if (this.filter.groupForRoute && this.filter.groupForRoute.length > 0) {
+          if (!this.filter.groupForRoute.includes(Number(item.group)))
+            return false;
         }
 
         if (this.filter.visitType === 1) {
@@ -462,16 +498,26 @@ export default {
       });
     },
     getZoneName() {
-      return (
-        this.getZoneList.find((zone) => zone.value == this.filter.groupForRoute)
-          ?.label || "Tüm Bölgeler"
-      );
+      if (
+        !this.filter.groupForRoute ||
+        this.filter.groupForRoute.length === 0
+      ) {
+        return "Tüm Bölgeler";
+      }
+      return this.getZoneList
+        .filter((zone) => this.filter.groupForRoute.includes(zone.value))
+        .map((z) => z.label)
+        .join(", ");
     },
   },
   methods: {
     async fetchCustomers() {
+      this.loading = true;
       const tenant_id = localStorage.getItem("tenant_id");
-      if (!tenant_id) return;
+      if (!tenant_id) {
+        this.loading = false;
+        return;
+      }
 
       const { data: customersData, error: customersError } = await supabase
         .from("customers")
@@ -495,8 +541,10 @@ export default {
       const { data: transactionsData, error: transactionsError } =
         await supabase
           .from("transactions")
-          .select("customer_id, type, sell_amount, collection_amount")
+          .select("*")
           .eq("tenant_id", tenant_id);
+
+      this.allTransactions = transactionsData;
 
       if (transactionsError) {
         console.error(transactionsError);
@@ -536,6 +584,7 @@ export default {
           totalDebt: totalDebt,
         };
       });
+      this.loading = false;
     },
     openCreateRouteDialog() {
       this.createRouteDialog = true;
@@ -551,7 +600,9 @@ export default {
           item.totalReceivable
         ),
       }));
-      this.filter.groupForRoute = this.todayGroupNumber;
+      this.filter.groupForRoute = this.todayGroupNumber
+        ? [this.todayGroupNumber]
+        : [];
     },
     closeRouteDialog() {
       this.createRouteDialog = false;
@@ -625,27 +676,27 @@ export default {
         ]);
 
         // Geçmiş işlemleri bulup ekle (Mock data kısıtlı olduğu için eşleşmezse ilkini baz al)
-        let customerTransactionsData = this.getTransactionList.find(
+        let customerTransactionsData = this.getSupabaseTransactionList?.find(
           (t) =>
             String(t.customerId) === String(transaction.customerId) ||
             t.companyName === transaction.companyName
         );
-        if (!customerTransactionsData && this.getTransactionList.length > 0) {
-          customerTransactionsData = this.getTransactionList[0]; // Görsel test için
-        }
 
         if (
           customerTransactionsData &&
           customerTransactionsData.transactions &&
           customerTransactionsData.transactions.length > 0
         ) {
-          // Son 3 işlemi al (tarihe göre azalan sırala, ilk 3'ü al)
           const sortedTransactions = [...customerTransactionsData.transactions]
             .sort(
               (a, b) =>
                 new Date(b.transactionDate) - new Date(a.transactionDate)
             )
             .slice(0, 5);
+
+          sortedTransactions.sort(
+            (a, b) => new Date(a.transactionDate) - new Date(b.transactionDate)
+          );
 
           // Kronolojik göstermek için tekrar eskiden yeniye sırala
           sortedTransactions.sort(
@@ -735,10 +786,14 @@ export default {
             margin: [0, -20, 0, 0],
           },
           {
-            text: `Bölge: ${this.getZoneName} - ${new Date().toLocaleDateString(
-              "tr-TR"
-            )}`,
+            text: `Bölge: ${this.getZoneName}`,
             style: "zoneName",
+            margin: [0, 0, 0, -15],
+          },
+          {
+            text: `Tarih: ${new Date().toLocaleDateString("tr-TR")}`,
+            style: "zoneDate",
+            margin: [0, 0, 0, 5],
           },
           {
             table: {
@@ -763,6 +818,11 @@ export default {
             margin: [0, 0, 0, 10],
             alignment: "left",
           },
+          zoneDate: {
+            bold: true,
+            margin: [0, 0, 0, 10],
+            alignment: "right",
+          },
         },
       };
 
@@ -780,31 +840,116 @@ export default {
       } else {
         this.resetFormData();
       }
-      this.formData.companyName = row.companyName || "";
       this.dialogVisible = true;
     },
-    saveChanges() {
+    getZoneIdByDay(day) {
+      if (!day && day !== 0) return null;
+      const zone = this._zoneList.find((z) => z.value === Number(day));
+      return zone ? zone.id : null;
+    },
+    async saveChanges() {
+      const tenant_id = localStorage.getItem("tenant_id");
+      if (!tenant_id) {
+        this.$notify.error({ title: "Hata", message: "Oturum bilgisi eksik." });
+        return;
+      }
+
+      const zone_id = this.getZoneIdByDay(this.formData.group);
+
       if (this.isEdit) {
+        // Güncelleme
+        const updatePayload = {
+          company_name: this.formData.companyName,
+          company_author: this.formData.companyAuthor,
+          phone: this.formData.phone,
+          address: this.formData.address,
+          note: this.formData.note,
+          zone_id: zone_id,
+        };
+
+        const { error } = await supabase
+          .from("customers")
+          .update(updatePayload)
+          .eq("id", this.customerDetail.id)
+          .eq("tenant_id", tenant_id);
+
+        if (error) {
+          console.error("update error:", error);
+          this.$notify.error({
+            title: "Hata",
+            message: "Müşteri güncellenemedi.",
+          });
+          return;
+        }
+
         this.$notify.success({
           title: "İşlem Başarılı",
-          message: "Müşteri Bilgileri Güncellendi",
+          message: "Müşteri bilgileri güncellendi.",
         });
       } else {
+        // Yeni müşteri oluşturma
+        const insertPayload = {
+          company_name: this.formData.companyName,
+          company_author: this.formData.companyAuthor,
+          phone: this.formData.phone,
+          address: this.formData.address,
+          note: this.formData.note,
+          zone_id: zone_id,
+          tenant_id: tenant_id,
+        };
+
+        const { error } = await supabase
+          .from("customers")
+          .insert([insertPayload]);
+
+        if (error) {
+          console.error("insert error:", error);
+          this.$notify.error({
+            title: "Hata",
+            message: "Müşteri oluşturulamadı.",
+          });
+          return;
+        }
+
         this.$notify.success({
           title: "İşlem Başarılı",
-          message: "Müşteri Oluşturuldu",
+          message: "Yeni müşteri oluşturuldu.",
         });
       }
+
       this.closePopup();
+      await this.fetchCustomers();
     },
-    deleteCustomer() {
-      if (this.currentCustomer) {
-        this.$notify.success({
-          title: "İşlem Başarılı",
-          message: "Müşteri Silindi",
-        });
-        this.closeDeletePopup();
+    async deleteCustomer() {
+      if (!this.currentCustomer || !this.currentCustomer.id) return;
+
+      const tenant_id = localStorage.getItem("tenant_id");
+      if (!tenant_id) {
+        this.$notify.error({ title: "Hata", message: "Oturum bilgisi eksik." });
+        return;
       }
+
+      const { error } = await supabase
+        .from("customers")
+        .delete()
+        .eq("id", this.currentCustomer.id)
+        .eq("tenant_id", tenant_id);
+
+      if (error) {
+        console.error("delete error:", error);
+        this.$notify.error({
+          title: "Hata",
+          message: "Müşteri silinemedi.",
+        });
+        return;
+      }
+
+      this.$notify.success({
+        title: "İşlem Başarılı",
+        message: "Müşteri silindi.",
+      });
+      this.closeDeletePopup();
+      await this.fetchCustomers();
     },
     closePopup() {
       this.dialogVisible = false;
@@ -813,14 +958,20 @@ export default {
       this.deleteCustomerPopupStatus = false;
     },
     openDeletePopup(row) {
-      this.currentCustomer.id = row.id;
-      this.currentCustomer.companyName = row.companyName;
+      this.currentCustomer = {
+        id: row.id,
+        companyName: row.companyName,
+      };
       this.deleteCustomerPopupStatus = true;
     },
     fillForm(row) {
       this.formData = {
-        ...this.formData,
-        ...row,
+        companyName: row.companyName || "",
+        companyAuthor: row.companyAuthor || "",
+        phone: row.phone || "",
+        address: row.address || "",
+        group: row.group || "",
+        note: row.note || "",
       };
     },
     resetFormData() {

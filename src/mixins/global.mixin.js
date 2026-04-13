@@ -14,7 +14,7 @@ export default {
         getGroupNameList() {
             // Önce Supabase verisini dene, yoksa sabit listeye dön
             return (groupId) => {
-                if (this._zoneList.length) {
+                if (this._zoneList?.length) {
                     const zone = this._zoneList.find(z => z.value === Number(groupId));
                     return zone ? zone.label : 'Bilinmiyor';
                 }
@@ -22,7 +22,7 @@ export default {
             };
         },
         getZoneList() {
-            if (this._zoneList.length) {
+            if (this._zoneList?.length) {
                 return this._zoneList;
             }
             // Fallback: sabit liste

@@ -1,7 +1,8 @@
 export const SEARCH_ITEMS = [
-    { keywords: 'Anasayfa, stok', link: '/anasayfa', title: 'Anasayfa' },
-    { keywords: 'üretim, ÜRETİM, Yeni üretim, ÜRETİM', link: '/anasayfa/uretimler', title: 'Yeni Üretim' },
-    { keywords: 'Müşteri, Müşteri Ekle', link: '/anasayfa/musteriler', title: 'Müşteriler' },
+    { keywords: 'Anasayfa, genel durum, dashboard', link: '/', title: 'Anasayfa' },
+    { keywords: 'Satış, tahsilat, ekstre, işlemler, hesap ekstresi, ödeme, Müşteri, müşteri ekle, firma listesi, cari hesaplar, satıcılar, borçlular', link: '/musteriler', title: 'Müşteriler' },
+    { keywords: 'Bölge, yeni bölge, rota, grup, gün planlama', link: '/bolge-yonetimi', title: 'Bölge Yönetimi' },
+    { keywords: 'Profil, ayarlar, firma', link: '/profil-bilgileri', title: 'Profil Ayarları' }
 ];
 
 export const GROUP_NAME_LIST = {

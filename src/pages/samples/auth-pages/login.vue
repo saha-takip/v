@@ -7,7 +7,13 @@
             <div class="col-sm-6 col-md-6 col-lg-5 col-xl-4 mx-auto">
               <div class="auth-form-light text-center p-5">
                 <div class="brand-logo">
-                  <img src="@/assets/images/logo.png" alt="logo" />
+                  <img
+                    :src="
+                      $storeState.tenant.logo_url ||
+                      require('@/assets/images/logo.png')
+                    "
+                    alt="logo"
+                  />
                 </div>
                 <h4>Satış Takip Programı <sup>®</sup></h4>
                 <form class="pt-3" @submit.prevent="login">
@@ -125,8 +131,9 @@ export default {
       } catch (error) {
         this.$notify.error({
           title: "Giriş Başarısız",
-          message: error.message || "Bilgilerinizi kontrol edin!",
+          message: "Bilgilerinizi kontrol edin!",
         });
+        console.log(error);
       } finally {
         this.loading = false;
       }

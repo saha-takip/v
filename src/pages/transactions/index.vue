@@ -84,6 +84,7 @@
           <div class="col-12 grid-margin">
             <el-table
               ref="mainTable"
+              v-loading="loading"
               :data="paginatedData"
               border
               style="width: 100%"
@@ -94,12 +95,32 @@
               <el-table-column
                 prop="transactionDate"
                 label="İşlem Tarihi"
-                width="120"
+                width="154"
                 sortable
               >
-                <template v-slot="scope">{{
-                  scope.row.transactionDate | formatDate
-                }}</template>
+                <template v-slot="scope">
+                  <template v-if="scope.row.id == 'temp'">
+                    <el-date-picker
+                      v-model="scope.row.transactionDate"
+                      type="date"
+                      format="dd.MM.yyyy"
+                      placeholder=""
+                      style="width: 133px"
+                    />
+                  </template>
+                  <template v-else-if="scope.row.isEditing">
+                    <el-date-picker
+                      v-model="currentRow.transactionDate"
+                      type="date"
+                      format="dd.MM.yyyy"
+                      placeholder=""
+                      style="width: 133px"
+                    />
+                  </template>
+                  <template v-else>
+                    {{ scope.row.transactionDate | formatDate }}
+                  </template>
+                </template>
               </el-table-column>
 
               <el-table-column
@@ -234,7 +255,11 @@
                       </el-option>
                     </el-select>
                   </template>
-                  <template v-else-if="scope.row.isEditing">
+                  <template
+                    v-else-if="
+                      scope.row.isEditing && scope.row.transactionType === 1
+                    "
+                  >
                     <el-select
                       v-model="currentRow.collectionType"
                       filterable
@@ -250,9 +275,7 @@
                     </el-select>
                   </template>
                   <template v-else>
-                    {{
-                      scope.row.collectionType ? scope.row.collectionType : "-"
-                    }}
+                    {{ getCollectionTypeLabel(scope.row.collectionType) }}
                   </template>
                 </template>
               </el-table-column>
@@ -557,9 +580,9 @@ export default {
       tempRow: null,
       disableAdd: false,
       collectionTypeList: [
-        { label: "Nakit", value: "NAKIT" },
-        { label: "Kredi Kartı", value: "KREDI" },
-        { label: "Havale/EFT", value: "HAVALE" },
+        { label: "Nakit", value: "NAKİT" },
+        { label: "Kredi Kartı", value: "KREDİ KARTI" },
+        { label: "Havale/EFT", value: "HAVALE/EFT" },
       ],
       exportTableData: [],
       tempTransactionId: null,
@@ -578,6 +601,7 @@ export default {
         remaining: 0,
         note: "",
       },
+      loading: false,
     };
   },
   mounted() {
@@ -742,6 +766,18 @@ export default {
     },
   },
   methods: {
+    toLocalISOString(date) {
+      const d = new Date(date);
+      d.setHours(12, 0, 0, 0);
+      return d.toISOString();
+    },
+    getCollectionTypeLabel(value) {
+      if (!value) return "-";
+      const found = this.collectionTypeList.find(
+        (item) => item.value === value
+      );
+      return found ? found.label : value;
+    },
     async fetchCustomer(customerId) {
       const { data, error } = await supabase
         .from("customers")
@@ -754,8 +790,12 @@ export default {
       }
     },
     async fetchTransactions(customerId) {
+      this.loading = true;
       const tenant_id = localStorage.getItem("tenant_id");
-      if (!tenant_id || !customerId) return;
+      if (!tenant_id || !customerId) {
+        this.loading = false;
+        return;
+      }
 
       const { data, error } = await supabase
         .from("transactions")
@@ -774,13 +814,18 @@ export default {
         transactionType: t.type === "Satis" ? 0 : 1,
         sellAmount: Number(t.sell_amount || 0),
         collectionAmount: Number(t.collection_amount || 0),
-        collectionType: t.collection_type || "-",
+        collectionType:
+          t.collection_type && t.collection_type !== "-"
+            ? t.collection_type
+            : null,
         note: t.description || "",
         transactionDate: t.date,
         isEditing: false,
         // orijinal DB alanları (güncelleme için)
         _raw: t,
       }));
+      
+      this.loading = false;
     },
     changeDate(val) {
       this.currentPage = 1;
@@ -823,7 +868,7 @@ export default {
               ? this.$options.filters.formatNumber(extract.collectionAmount)
               : "-",
           },
-          { text: extract.collectionType },
+          { text: extract.transactionType ? extract.collectionType : "-" },
         ]);
       });
 
@@ -929,17 +974,35 @@ export default {
     async saveChanges(row) {
       const updatePayload = {};
 
+      // İşlem tarihi güncellemesi
+      if (this.currentRow.transactionDate) {
+        updatePayload.date = this.toLocalISOString(
+          this.currentRow.transactionDate
+        );
+      }
+
       if (row.transactionType === 1) {
         // Tahsilat
-        if (this.currentRow.collectionAmount != null && this.currentRow.collectionAmount !== "") {
-          updatePayload.collection_amount = Number(this.currentRow.collectionAmount);
+        if (
+          this.currentRow.collectionAmount != null &&
+          this.currentRow.collectionAmount !== ""
+        ) {
+          updatePayload.collection_amount = Number(
+            this.currentRow.collectionAmount
+          );
         }
-        if (this.currentRow.collectionType != null && this.currentRow.collectionType !== "") {
+        if (
+          this.currentRow.collectionType != null &&
+          this.currentRow.collectionType !== ""
+        ) {
           updatePayload.collection_type = this.currentRow.collectionType;
         }
       } else {
         // Satış
-        if (this.currentRow.sellAmount != null && this.currentRow.sellAmount !== "") {
+        if (
+          this.currentRow.sellAmount != null &&
+          this.currentRow.sellAmount !== ""
+        ) {
           updatePayload.sell_amount = Number(this.currentRow.sellAmount);
         }
       }
@@ -960,7 +1023,10 @@ export default {
       }
 
       row.isEditing = false;
-      this.$notify.success({ title: "Başarılı", message: "İşlem güncellendi." });
+      this.$notify.success({
+        title: "Başarılı",
+        message: "İşlem güncellendi.",
+      });
       await this.fetchTransactions(this.currentCustomer.id);
     },
     editRow(row) {
@@ -971,8 +1037,9 @@ export default {
         // Tahsilat
         this.currentRow = {
           __transactionType__: 1,
+          transactionDate: row.transactionDate,
           collectionAmount: null,
-          collectionType: null,
+          collectionType: row.collectionType || null,
           placeholder: row.collectionAmount,
           note: row.note,
         };
@@ -980,6 +1047,7 @@ export default {
         // Satış
         this.currentRow = {
           __transactionType__: 0,
+          transactionDate: row.transactionDate,
           sellAmount: null,
           placeholder: row.sellAmount,
           note: row.note,
@@ -1028,7 +1096,9 @@ export default {
           description: row.note || "",
           tenant_id,
           customer_id,
-          date: new Date().toISOString(),
+          date: row.transactionDate
+            ? this.toLocalISOString(row.transactionDate)
+            : this.toLocalISOString(new Date()),
         };
       } else {
         // Tahsilat
@@ -1040,7 +1110,9 @@ export default {
           description: row.note || "",
           tenant_id,
           customer_id,
-          date: new Date().toISOString(),
+          date: row.transactionDate
+            ? this.toLocalISOString(row.transactionDate)
+            : this.toLocalISOString(new Date()),
         };
       }
 

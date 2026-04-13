@@ -37,7 +37,7 @@ export default new Router({
           component: () => import('@/pages/transactions/detail')
         },
         {
-          path: '/grup-yonetimi',
+          path: '/bolge-yonetimi',
           name: 'group-management',
           component: () => import('@/pages/group-management')
         },

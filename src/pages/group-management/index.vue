@@ -32,6 +32,7 @@
           </div>
           <div class="col-12 grid-margin">
             <el-table
+              v-loading="loading"
               :data="paginatedData"
               border
               style="width: 100%"
@@ -140,6 +141,7 @@ export default {
       filter: {
         search: "",
       },
+      loading: false,
     };
   },
   mounted() {
@@ -181,8 +183,12 @@ export default {
   },
   methods: {
     async fetchGroups() {
+      this.loading = true;
       const tenant_id = localStorage.getItem("tenant_id");
-      if (!tenant_id) return;
+      if (!tenant_id) {
+         this.loading = false;
+         return;
+      }
 
       const { data, error } = await supabase
         .from("zones")
@@ -191,10 +197,12 @@ export default {
 
       if (error) {
         console.error(error);
+        this.loading = false;
         return;
       }
 
       this.groupList = data;
+      this.loading = false;
     },
     handlePageChange(page) {
       this.currentPage = page;

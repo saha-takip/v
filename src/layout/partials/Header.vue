@@ -8,10 +8,10 @@
       class="text-center navbar-brand-wrapper d-flex align-items-top justify-content-center"
     >
       <router-link class="navbar-brand brand-logo" to="/">
-        <img src="@/assets/images/logo.png" alt="logo" />
+        <img :src="$storeState.tenant.logo_url || require('@/assets/images/logo.png')" alt="logo" />
       </router-link>
       <router-link class="navbar-brand brand-logo-mini" to="/">
-        <img src="@/assets/images/mini-logo.png" alt="logo" />
+        <img :src="$storeState.tenant.icon_url || require('@/assets/images/mini-logo.png')" alt="logo" />
       </router-link>
     </div>
     <div class="navbar-menu-wrapper d-flex align-items-center ml-auto ml-lg-0">
@@ -23,26 +23,41 @@
         <span class="mdi mdi-menu"></span>
       </button>
       <div class="search-field d-none d-md-block">
-        <form action="#">
-          <div class="d-flex align-items-center input-group">
-            <div class="input-group-prepend bg-transparent">
-              <i class="input-group-text border-0 mdi mdi-magnify"></i>
-            </div>
-            <input
-              type="text"
-              class="form-control bg-transparent"
-              style="width: 250px"
-              placeholder="Ne yapmak istiyorsunuz?"
-            />
-          </div>
-        </form>
+        <div class="header-search">
+          <el-autocomplete
+            v-model="searchQuery"
+            :fetch-suggestions="querySearch"
+            placeholder="Ne yapmak istiyorsunuz?"
+            @select="handleSelect"
+            prefix-icon="el-icon-search"
+            class="search-autocomplete"
+            style="width: 150%"
+            popper-class="search-autocomplete-popper"
+            select-when-unmatched
+            clearable
+          >
+            <template slot-scope="{ item }">
+              <div
+                class="name font-weight-bold"
+                style="line-height: normal; margin-top: 5px"
+              >
+                {{ item.title }}
+              </div>
+              <span
+                class="desc text-muted"
+                style="font-size: 11px; line-height: normal"
+                >{{ item.keywords }}</span
+              >
+            </template>
+          </el-autocomplete>
+        </div>
       </div>
       <b-navbar-nav class="navbar-nav-right ml-auto">
-        <b-nav-item class="nav-profile d-none d-lg-flex" v-if="profile">
+        <b-nav-item class="nav-profile d-none d-lg-flex" v-if="$storeState.userProfile.id">
           <div class="d-flex align-items-center">
-            <div class="nav-profile-img" v-if="profile.avatar_url">
+            <div class="nav-profile-img" v-if="$storeState.userProfile.avatar_url">
               <img
-                :src="profile.avatar_url"
+                :src="$storeState.userProfile.avatar_url"
                 alt="image"
                 style="
                   width: 32px;
@@ -54,7 +69,7 @@
             </div>
             <div class="nav-profile-text ml-2">
               <p class="mb-0 text-black font-weight-bold">
-                {{ profile.full_name }}
+                {{ $storeState.userProfile.full_name }}
               </p>
             </div>
           </div>
@@ -81,26 +96,45 @@
 
 <script>
 import { supabase } from "@/supabase";
+import { SEARCH_ITEMS } from "@/util/constants";
 
 export default {
   name: "app-header",
   data() {
     return {
-      profile: null,
+      searchQuery: "",
+      searchLinks: SEARCH_ITEMS,
     };
   },
   mounted() {
-    const profileData = localStorage.getItem("userProfile");
-    if (profileData) {
-      try {
-        this.profile = JSON.parse(profileData);
-      } catch (e) {
-        // eslint-disable-next-line no-console
-        console.error("Profile parsing error", e);
-      }
-    }
   },
   methods: {
+    querySearch(queryString, cb) {
+      let links = this.searchLinks;
+      let results = queryString
+        ? links.filter(this.createFilter(queryString))
+        : links;
+
+      let formattedResults = results.map((item) => {
+        return { ...item, value: item.title };
+      });
+      cb(formattedResults);
+    },
+    createFilter(queryString) {
+      return (link) => {
+        return (
+          link.keywords.toLowerCase().includes(queryString.toLowerCase()) ||
+          link.title.toLowerCase().includes(queryString.toLowerCase())
+        );
+      };
+    },
+    handleSelect(item) {
+      if (!item.link) return;
+      if (this.$route.path !== item.link) {
+        this.$router.push({ path: item.link });
+      }
+      this.searchQuery = "";
+    },
     toggleSidebar: () => {
       document.querySelector("body").classList.toggle("sidebar-icon-only");
     },

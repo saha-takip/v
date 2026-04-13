@@ -8,6 +8,12 @@ import 'element-ui/lib/theme-chalk/index.css'
 import locale from './locale/tr';
 import './filters';
  
+import { store, mutations } from './store';
+
+// Global Store Enjeksiyonu
+Vue.prototype.$storeState = store;
+Vue.prototype.$storeMutations = mutations;
+
 Vue.use(BootstrapVue)
 Vue.use(VueSweetalert2)
 Vue.use(ElementUI, { locale });

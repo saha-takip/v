@@ -34,7 +34,7 @@
           </router-link>
         </li> -->
         <li class="nav-item">
-          <router-link class="nav-link" to="/grup-yonetimi" exact>
+          <router-link class="nav-link" to="/bolge-yonetimi" exact>
             <i class="mdi mdi-routes menu-icon"></i>
             <span class="menu-title">Bölge Yönetimi</span>
           </router-link>
