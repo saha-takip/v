@@ -8,10 +8,22 @@
       class="text-center navbar-brand-wrapper d-flex align-items-top justify-content-center"
     >
       <router-link class="navbar-brand brand-logo" to="/">
-        <img :src="$storeState.tenant.logo_url || require('@/assets/images/logo.png')" alt="logo" />
+        <img
+          :src="
+            $storeState.tenant.logo_url ||
+            require('@/assets/images/default-logo.jpg')
+          "
+          alt="logo"
+        />
       </router-link>
       <router-link class="navbar-brand brand-logo-mini" to="/">
-        <img :src="$storeState.tenant.icon_url || require('@/assets/images/mini-logo.png')" alt="logo" />
+        <img
+          :src="
+            $storeState.tenant.icon_url ||
+            require('@/assets/images/mini-default-logo.jpg')
+          "
+          alt="logo"
+        />
       </router-link>
     </div>
     <div class="navbar-menu-wrapper d-flex align-items-center ml-auto ml-lg-0">
@@ -53,9 +65,15 @@
         </div>
       </div>
       <b-navbar-nav class="navbar-nav-right ml-auto">
-        <b-nav-item class="nav-profile d-none d-lg-flex" v-if="$storeState.userProfile.id">
+        <b-nav-item
+          class="nav-profile d-none d-lg-flex"
+          v-if="$storeState.userProfile.id"
+        >
           <div class="d-flex align-items-center">
-            <div class="nav-profile-img" v-if="$storeState.userProfile.avatar_url">
+            <div
+              class="nav-profile-img"
+              v-if="$storeState.userProfile.avatar_url"
+            >
               <img
                 :src="$storeState.userProfile.avatar_url"
                 alt="image"
@@ -106,8 +124,7 @@ export default {
       searchLinks: SEARCH_ITEMS,
     };
   },
-  mounted() {
-  },
+  mounted() {},
   methods: {
     querySearch(queryString, cb) {
       let links = this.searchLinks;
@@ -144,8 +161,7 @@ export default {
     async logout(event) {
       event.preventDefault();
       await supabase.auth.signOut();
-      localStorage.removeItem("userProfile");
-      localStorage.removeItem("tenant_id");
+      localStorage.clear();
       this.$router.push({ name: "login" });
     },
   },

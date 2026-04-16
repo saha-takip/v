@@ -130,6 +130,13 @@
               >
                 <el-table-column prop="company_name" label="Firma Adı" sortable>
                 </el-table-column>
+                <el-table-column prop="phone" label="Telefon">
+                  <template v-slot="scope">
+                    <a :href="`tel:${scope.row.phone}`">{{
+                      scope.row.phone
+                    }}</a>
+                  </template>
+                </el-table-column>
                 <el-table-column label="Bölge">
                   <template v-slot="scope">
                     {{ getGroupNameList(scope.row.zones?.day) }}
@@ -208,7 +215,7 @@ export default {
         search: "",
       },
       currentPage: 1,
-      pageSize: 10,
+      pageSize: 5,
     };
   },
   computed: {

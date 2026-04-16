@@ -2,10 +2,12 @@
   <div>
     <div class="page-header">
       <h3 class="page-title">
-        <span class="page-title-icon bg-gradient-primary text-white mr-2">
-          <i class="mdi mdi-account-card-details"></i>
-        </span>
-        Profil ve Kurumsal Bilgiler
+        <div>
+          <span class="page-title-icon bg-gradient-success text-white mr-2">
+            <i class="mdi mdi-account-card-details"></i>
+          </span>
+          Profil ve Kurumsal Bilgiler
+        </div>
       </h3>
     </div>
 
@@ -23,8 +25,9 @@
                     <small class="text-muted d-block mb-1">Ana Logo</small>
                     <img
                       :src="
+                        logoPreview ||
                         tenantForm.logo_url ||
-                        require('@/assets/images/logo.png')
+                        require('@/assets/images/default-logo.jpg')
                       "
                       alt="Logo"
                       class="img-thumbnail"
@@ -37,8 +40,9 @@
                     >
                     <img
                       :src="
+                        iconPreview ||
                         tenantForm.icon_url ||
-                        require('@/assets/images/logo.png')
+                        require('@/assets/images/mini-default-logo.jpg')
                       "
                       alt="Icon"
                       style="
@@ -51,27 +55,48 @@
                   </div>
                 </div>
 
-                <el-upload
-                  class="upload-demo"
-                  action="#"
-                  :auto-upload="false"
-                  :on-change="handleLogoChange"
-                  :show-file-list="false"
-                  accept="image/png, image/jpeg"
+                <div
+                  class="d-flex justify-content-center align-items-start mt-2"
+                  style="gap: 12px"
                 >
-                  <el-button
-                    size="small"
-                    type="primary"
-                    :loading="uploadingLogo"
-                    icon="el-icon-upload"
-                  >
-                    Yeni Kurumsal Görsel Yükle
-                  </el-button>
-                  <div slot="tip" class="el-upload__tip">
-                    PNG/JPG yüklediğinizde sistem otomatik olarak hem logo hem
-                    ikon üretir.
+                  <div class="text-center">
+                    <el-upload
+                      action="#"
+                      :auto-upload="false"
+                      :on-change="(file) => handleFileChange(file, 'logo')"
+                      :show-file-list="false"
+                      accept="image/png, image/jpeg"
+                    >
+                      <el-button
+                        size="small"
+                        type="primary"
+                        icon="el-icon-upload"
+                      >
+                        Ana Logo Seç
+                      </el-button>
+                    </el-upload>
+                    <div class="el-upload__tip mt-1">Ana Logo (PNG/JPG)</div>
                   </div>
-                </el-upload>
+
+                  <div class="text-center">
+                    <el-upload
+                      action="#"
+                      :auto-upload="false"
+                      :on-change="(file) => handleFileChange(file, 'icon')"
+                      :show-file-list="false"
+                      accept="image/png, image/jpeg"
+                    >
+                      <el-button
+                        size="small"
+                        type="warning"
+                        icon="el-icon-upload"
+                      >
+                        Mini Logo Seç
+                      </el-button>
+                    </el-upload>
+                    <div class="el-upload__tip mt-1">Mini Logo (PNG/JPG)</div>
+                  </div>
+                </div>
               </div>
 
               <div class="form-group">
@@ -89,7 +114,7 @@
                 type="success"
                 :loading="savingTenant"
                 @click="updateTenant"
-                class="btn-block gradient-btn"
+                class="btn-block"
                 >Değişiklikleri Kaydet</el-button
               >
             </form>
@@ -104,24 +129,6 @@
             <p class="card-description">Kişisel Bilgileriniz</p>
 
             <form class="forms-sample" @submit.prevent="updateUser">
-              <div class="form-group text-center">
-                <div class="avatar-preview-container mb-3 shadow-sm">
-                  <img
-                    :src="
-                      userForm.avatar_url || 'https://via.placeholder.com/150'
-                    "
-                    alt="Avatar"
-                    class="rounded-circle"
-                    style="
-                      width: 100px;
-                      height: 100px;
-                      object-fit: cover;
-                      border: 3px solid #fff;
-                    "
-                  />
-                </div>
-              </div>
-
               <div class="form-group">
                 <label for="fullName">Ad Soyad</label>
                 <input
@@ -142,15 +149,8 @@
                 />
               </div>
 
-              <div class="form-group">
-                <label>Yetki Seviyesi:</label>
-                <span class="badge badge-outline-primary ml-2">{{
-                  $storeState.userProfile.role || "Personel"
-                }}</span>
-              </div>
-
               <el-button
-                type="primary"
+                type="success"
                 :loading="savingUser"
                 @click="updateUser"
                 class="btn-block"
@@ -161,9 +161,6 @@
         </div>
       </div>
     </div>
-
-    <canvas ref="logoCanvas" style="display: none"></canvas>
-    <canvas ref="iconCanvas" style="display: none"></canvas>
   </div>
 </template>
 
@@ -178,124 +175,130 @@ export default {
       savingUser: false,
       uploadingLogo: false,
       tenantForm: { id: null, name: "", logo_url: "", icon_url: "" },
-      userForm: { full_name: "", avatar_url: "" },
+      userForm: { full_name: "" },
       userAuthEmail: "",
+      pendingLogoFile: null,
+      pendingIconFile: null,
+      logoPreview: null,
+      iconPreview: null,
     };
   },
   async mounted() {
+    await this.fetchTenantData();
     this.initForms();
     this.userAuthEmail = supabase.auth.user()?.email || "";
   },
   methods: {
-    initForms() {
-      const tenant = this.$storeState.tenant || {};
-      const profile = this.$storeState.userProfile || {};
+    async fetchTenantData() {
+      const tenantId = localStorage.getItem("tenant_id");
+      if (!tenantId) return;
 
-      this.tenantForm = {
-        id: tenant.id || localStorage.getItem("tenant_id"),
-        name: tenant.name || "",
-        logo_url: tenant.logo_url || "",
-        icon_url: tenant.icon_url || "",
-      };
+      const { data, error } = await supabase
+        .from("tenants")
+        .select("*")
+        .eq("id", tenantId)
+        .single();
 
-      this.userForm = {
-        full_name: profile.full_name || "",
-        avatar_url: profile.avatar_url || "",
-      };
-    },
-
-    async handleLogoChange(file) {
-      this.uploadingLogo = true;
-      try {
-        // 1. Hem büyük logo hem küçük ikon üret
-        const logoBlob = await this.processImage(file.raw, 512, "logoCanvas");
-        const iconBlob = await this.processImage(file.raw, 64, "iconCanvas");
-
-        // 2. Storage'a yükle (İsimleri benzersiz yapalım)
-        const timestamp = Date.now();
-        const logoPath = `branding/${this.tenantForm.id}_logo_${timestamp}.png`;
-        const iconPath = `branding/${this.tenantForm.id}_icon_${timestamp}.png`;
-
-        await this.uploadToStorage(logoPath, logoBlob);
-        await this.uploadToStorage(iconPath, iconBlob);
-
-        // 3. URL'leri al
-        this.tenantForm.logo_url = supabase.storage
-          .from("avatars")
-          .getPublicUrl(logoPath).publicURL;
-        this.tenantForm.icon_url = supabase.storage
-          .from("avatars")
-          .getPublicUrl(iconPath).publicURL;
-
-        this.$message.success(
-          "Görseller hazırlandı. Kaydet butonuna basarak onaylayın."
-        );
-      } catch (err) {
-        this.$message.error("Görsel yüklenemedi: " + err.message);
-      } finally {
-        this.uploadingLogo = false;
+      if (!error && data) {
+        this.tenantForm = {
+          id: data.id,
+          name: data.name && data.name !== "Panel" ? data.name : "",
+          logo_url: data.logo_url || "",
+          icon_url: data.icon_url || "",
+        };
+        // Store'u da güncel tutalım
+        this.$storeMutations.setTenant(data);
       }
     },
-
-    async uploadToStorage(path, blob) {
-      const { error } = await supabase.storage
-        .from("avatars")
-        .upload(path, blob, { contentType: "image/png" });
-      if (error) throw error;
+    initForms() {
+      const profile = this.$storeState.userProfile || {};
+      this.userForm = {
+        full_name: profile.full_name || "",
+      };
     },
 
-    processImage(file, size, canvasRef) {
-      return new Promise((resolve) => {
-        const reader = new FileReader();
-        reader.readAsDataURL(file);
-        reader.onload = (e) => {
-          const img = new Image();
-          img.src = e.target.result;
-          img.onload = () => {
-            const canvas = this.$refs[canvasRef];
-            const ctx = canvas.getContext("2d");
-            canvas.width = size;
-            canvas.height = size;
-
-            // Kare kesim mantığı
-            let sX = 0,
-              sY = 0,
-              sW = img.width,
-              sH = img.height;
-            if (img.width > img.height) {
-              sW = img.height;
-              sX = (img.width - img.height) / 2;
-            } else {
-              sH = img.width;
-              sY = (img.height - img.width) / 2;
-            }
-
-            ctx.drawImage(img, sX, sY, sW, sH, 0, 0, size, size);
-            canvas.toBlob((blob) => resolve(blob), "image/png");
-          };
-        };
-      });
+    handleFileChange(file, type) {
+      if (type === "logo") {
+        this.pendingLogoFile = file.raw;
+        this.logoPreview = URL.createObjectURL(file.raw);
+      } else {
+        this.pendingIconFile = file.raw;
+        this.iconPreview = URL.createObjectURL(file.raw);
+      }
+    },
+    async uploadToStorage(path, file) {
+      const { error } = await supabase.storage
+        .from("avatars")
+        .upload(path, file, {
+          contentType: file.type,
+          upsert: true,
+        });
+      if (error) throw error;
     },
 
     async updateTenant() {
       this.savingTenant = true;
+
+      if (!this.tenantForm.id) {
+        this.$message.error("Tenant ID bulunamadı, sayfa yenileniyor...");
+        this.initForms();
+        return;
+      }
+
       try {
+        const timestamp = Date.now();
+        let finalLogoUrl = this.tenantForm.logo_url;
+        let finalIconUrl = this.tenantForm.icon_url;
+
+        // Ana Logo Yükleme
+        if (this.pendingLogoFile) {
+          const ext = this.pendingLogoFile.name.split(".").pop();
+          const logoPath = `branding/${this.tenantForm.id}_logo_${timestamp}.${ext}`;
+          await this.uploadToStorage(logoPath, this.pendingLogoFile);
+
+          const { publicURL } = supabase.storage
+            .from("avatars")
+            .getPublicUrl(logoPath);
+          finalLogoUrl = publicURL;
+          this.tenantForm.logo_url = publicURL;
+        }
+
+        // Mini Logo Yükleme
+        if (this.pendingIconFile) {
+          const ext = this.pendingIconFile.name.split(".").pop();
+          const iconPath = `branding/${this.tenantForm.id}_icon_${timestamp}.${ext}`;
+          await this.uploadToStorage(iconPath, this.pendingIconFile);
+
+          const { publicURL } = supabase.storage
+            .from("avatars")
+            .getPublicUrl(iconPath);
+          finalIconUrl = publicURL;
+          this.tenantForm.icon_url = publicURL;
+        }
+
         const { error } = await supabase
           .from("tenants")
           .update({
             name: this.tenantForm.name,
-            logo_url: this.tenantForm.logo_url,
-            icon_url: this.tenantForm.icon_url, // Yeni kolon
+            logo_url: finalLogoUrl,
+            icon_url: finalIconUrl,
           })
           .eq("id", this.tenantForm.id);
 
         if (error) throw error;
 
-        // Dinamik başlık ve Favicon güncelleme (Anlık yansıma için)
-        document.title = `${this.tenantForm.name} | Satış & Tahsilat Takip`;
-        const favicon = document.querySelector("link[rel*='icon']");
-        if (favicon && this.tenantForm.icon_url)
-          favicon.href = this.tenantForm.icon_url;
+        // Global store'u ve local storage'ı güncelle
+        this.$storeMutations.setTenant({
+          name: this.tenantForm.name,
+          logo_url: finalLogoUrl,
+          icon_url: finalIconUrl,
+        });
+
+        // Pending verileri temizle
+        this.pendingLogoFile = null;
+        this.pendingIconFile = null;
+        this.logoPreview = null;
+        this.iconPreview = null;
 
         this.$message.success("Kurumsal kimlik güncellendi.");
       } catch (err) {
@@ -315,6 +318,22 @@ export default {
           .select("*");
 
         if (error) throw error;
+
+        this.$storeMutations.setUserProfile({
+          full_name: this.userForm.full_name,
+        });
+
+        try {
+          const profileStr = localStorage.getItem("userProfile");
+          if (profileStr) {
+            const profileData = JSON.parse(profileStr);
+            profileData.full_name = this.userForm.full_name;
+            localStorage.setItem("userProfile", JSON.stringify(profileData));
+          }
+        } catch (e) {
+          console.error("Local storage update error", e);
+        }
+
         this.$message.success("Profil güncellendi.");
       } finally {
         this.savingUser = false;

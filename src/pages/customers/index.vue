@@ -783,17 +783,17 @@ export default {
             image: logo,
             width: 150,
             alignment: "center",
-            margin: [0, -20, 0, 0],
+            margin: [0, -30, 0, 0],
           },
           {
-            text: `Bölge: ${this.getZoneName}`,
+            text: `Bölge: [${this.getZoneName}]`,
             style: "zoneName",
-            margin: [0, 0, 0, -15],
+            margin: [0, 10, 0, -15],
           },
           {
             text: `Tarih: ${new Date().toLocaleDateString("tr-TR")}`,
             style: "zoneDate",
-            margin: [0, 0, 0, 5],
+            margin: [0, 0, 0, 10],
           },
           {
             table: {

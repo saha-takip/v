@@ -5,6 +5,7 @@ export const store = Vue.observable({
         id: null,
         name: 'Panel',
         logo_url: null,
+        icon_url: null,
     },
     userProfile: {
         id: null,
@@ -23,14 +24,14 @@ export const mutations = {
             document.title = `${store.tenant.name} | Satış & Tahsilat Takip`;
         }
         
-        if (store.tenant.logo_url) {
+        if (store.tenant.icon_url) {
             let link = document.querySelector("link[rel~='icon']");
             if (!link) {
                 link = document.createElement('link');
                 link.rel = 'icon';
                 document.head.appendChild(link);
             }
-            link.href = store.tenant.logo_url;
+            link.href = store.tenant.icon_url;
         }
     },
     setUserProfile(profileData) {

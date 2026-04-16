@@ -10,7 +10,7 @@
                   <img
                     :src="
                       $storeState.tenant.logo_url ||
-                      require('@/assets/images/logo.png')
+                      require('@/assets/images/default-logo.jpg')
                     "
                     alt="logo"
                   />
@@ -18,21 +18,20 @@
                 <h4>Satış Takip Programı <sup>®</sup></h4>
                 <form class="pt-3" @submit.prevent="login">
                   <div class="form-group">
-                    <input
+                    <el-input
                       type="email"
                       v-model="formData.email"
-                      class="form-control form-control-lg"
                       id="exampleInputEmail1"
                       placeholder="E-posta Adresi"
                     />
                   </div>
                   <div class="form-group">
-                    <input
+                    <el-input
                       type="password"
                       v-model="formData.password"
-                      class="form-control form-control-lg"
                       id="exampleInputPassword1"
                       placeholder="Şifre"
+                      show-password
                     />
                   </div>
                   <div class="mt-3">
