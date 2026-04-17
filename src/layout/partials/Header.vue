@@ -43,7 +43,7 @@
             @select="handleSelect"
             prefix-icon="el-icon-search"
             class="search-autocomplete"
-            style="width: 150%"
+            style="width: 100%"
             popper-class="search-autocomplete-popper"
             select-when-unmatched
             clearable
@@ -70,22 +70,8 @@
           v-if="$storeState.userProfile.id"
         >
           <div class="d-flex align-items-center">
-            <div
-              class="nav-profile-img"
-              v-if="$storeState.userProfile.avatar_url"
-            >
-              <img
-                :src="$storeState.userProfile.avatar_url"
-                alt="image"
-                style="
-                  width: 32px;
-                  height: 32px;
-                  border-radius: 50%;
-                  object-fit: cover;
-                "
-              />
-            </div>
             <div class="nav-profile-text ml-2">
+              <p class="text-muted mb-1">Hoş Geldin,</p>
               <p class="mb-0 text-black font-weight-bold">
                 {{ $storeState.userProfile.full_name }}
               </p>
@@ -93,7 +79,7 @@
           </div>
         </b-nav-item>
         <b-nav-item
-          class="nav-logout d-none d-lg-flex ml-3"
+          class="nav-logout d-none d-lg-flex ml-1"
           @click="logout"
           style="border-left: 1px solid #ebedf2; padding-left: 15px"
         >
@@ -161,12 +147,27 @@ export default {
     async logout(event) {
       event.preventDefault();
       await supabase.auth.signOut();
-      localStorage.clear();
+      localStorage.removeItem("userProfile");
+      localStorage.removeItem("supabase.auth.token");
+      localStorage.removeItem("tenant_id");
       this.$router.push({ name: "login" });
     },
   },
 };
 </script>
 
-<style scoped>
+<style>
+@media (max-width: 1280px) {
+  .custom.card .card-body {
+    padding: 26px !important;
+  }
+  .popup .el-dialog {
+    width: 45% !important;
+  }
+}
+@media (min-width: 1281px) {
+  .popup .el-dialog {
+    width: 37% !important;
+  }
+}
 </style>

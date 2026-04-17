@@ -1,4 +1,4 @@
-name: FURKAN GIDA STOK TAKIP
+name: SATIŞ VE TAHSİLAT TAKİP
 
 on:
   push:
@@ -6,39 +6,34 @@ on:
       - main 
 
 permissions:
-  contents: write  # Organization private repo için push izni
+  contents: write
 
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
 
     steps:
-      # Repo'yu çek
       - name: Checkout Repo
         uses: actions/checkout@v4
 
-      # Node.js kurulumu
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 14
 
-      # Bağımlılıkları yükle
       - name: Install Dependencies
-        run: npm ci
+        run: npm install
 
-      # Projeyi build et
       - name: Build Project
         env:
-          VUE_APP_API_URL: ${{ secrets.VUE_APP_API_URL }}  # API yoksa boş bırakabilirsin
+          VUE_APP_SUPABASE_URL: ${{ secrets.VUE_APP_SUPABASE_URL }}
+          VUE_APP_SUPABASE_ANON_KEY: ${{ secrets.VUE_APP_SUPABASE_ANON_KEY }}
         run: npm run build
 
-      # GitHub Pages'e deploy et
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}  # Action token otomatik, write izni olmalı
+          github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./dist
-          commit_message: "Website is published!"
+          commit_message: "Panel Değişiklikleri Güncellendi!"
           force_orphan: true
-          commit_dirtiness: true

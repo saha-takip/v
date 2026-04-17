@@ -206,7 +206,6 @@ export default {
           logo_url: data.logo_url || "",
           icon_url: data.icon_url || "",
         };
-        // Store'u da güncel tutalım
         this.$storeMutations.setTenant(data);
       }
     },
@@ -235,7 +234,6 @@ export default {
         });
       if (error) throw error;
     },
-
     async updateTenant() {
       this.savingTenant = true;
 
@@ -287,7 +285,7 @@ export default {
 
         if (error) throw error;
 
-        // Global store'u ve local storage'ı güncelle
+        // Global store'u ve local storage'ı güncelle (Merkezi yerden)
         this.$storeMutations.setTenant({
           name: this.tenantForm.name,
           logo_url: finalLogoUrl,

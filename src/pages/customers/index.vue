@@ -30,7 +30,7 @@
     <div class="card">
       <div class="card-body">
         <div class="row">
-          <div class="col-3 col-sm-4 col-md-2 mb-3">
+          <div class="col-3 col-sm-4 mb-3">
             <el-input
               v-model="filter.search"
               placeholder="Müşteri arayın"
@@ -71,7 +71,11 @@
               <el-table-column prop="companyName" label="Firma Adı" width="180">
                 <template v-slot="scope">{{ scope.row.companyName }}</template>
               </el-table-column>
-              <el-table-column prop="companyAuthor" label="Firma Yetkilisi">
+              <el-table-column
+                prop="companyAuthor"
+                label="Firma Yetkilisi"
+                width="160"
+              >
                 <template v-slot="scope">
                   {{ scope.row.companyAuthor }}
                 </template>
@@ -81,12 +85,17 @@
                 label="Telefon"
                 width="115"
               ></el-table-column>
-              <el-table-column prop="group" label="Bölge" sortable>
+              <el-table-column prop="group" label="Bölge" sortable width="140">
                 <template v-slot="scope">
                   {{ getGroupNameList(scope.row.group) }}
                 </template>
               </el-table-column>
-              <el-table-column prop="totalSale" label="Toplam Satış" sortable>
+              <el-table-column
+                prop="totalSale"
+                label="Toplam Satış"
+                sortable
+                width="130"
+              >
                 <template v-slot="scope">
                   {{ scope.row.totalSale | formatNumber }}
                 </template>
@@ -101,7 +110,12 @@
                   {{ scope.row.totalCollection | formatNumber }}
                 </template>
               </el-table-column>
-              <el-table-column prop="totalDebt" label="Toplam Borç" sortable>
+              <el-table-column
+                prop="totalDebt"
+                label="Toplam Borç"
+                sortable
+                width="125"
+              >
                 <template v-slot="scope">
                   <label
                     v-if="scope.row.totalDebt > 0"
@@ -177,7 +191,7 @@
     <el-dialog
       :title="getPopupTitle"
       :visible.sync="dialogVisible"
-      width="37%"
+      class="popup"
       @close="closePopup"
     >
       <el-form label-position="top" :model="formData" label-width="100px">
@@ -263,7 +277,7 @@
     <el-dialog
       title="Rota oluştur"
       :visible.sync="createRouteDialog"
-      width="45%"
+      class="popup"
       @close="closeRouteDialog"
     >
       <el-form label-position="top" :model="formData" label-width="100px">
@@ -311,7 +325,7 @@
       <hr />
 
       <el-row :gutter="16">
-        <el-col :span="13">
+        <el-col :span="20">
           <el-alert
             v-if="filter.groupForRoute"
             title="Seçilen bölgeye ait müşterilerin rotası, aşağıdaki gibidir."
@@ -335,7 +349,7 @@
         <el-table-column
           prop="companyName"
           label="Firma Adı"
-          width="250"
+          width="180"
           sortable
         >
         </el-table-column>

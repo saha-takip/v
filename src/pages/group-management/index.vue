@@ -22,7 +22,7 @@
     <div class="card">
       <div class="card-body">
         <div class="row">
-          <div class="col-3 col-sm-5 col-md-2 mb-3">
+          <div class="col-8 col-sm-5 col-md-4 mb-3">
             <el-input
               v-model="filter.search"
               placeholder="Bölge Ara..."
@@ -186,8 +186,8 @@ export default {
       this.loading = true;
       const tenant_id = localStorage.getItem("tenant_id");
       if (!tenant_id) {
-         this.loading = false;
-         return;
+        this.loading = false;
+        return;
       }
 
       const { data, error } = await supabase

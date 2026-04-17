@@ -147,15 +147,11 @@
 
 <script>
 export default {
-  name: 'sidebar',
- data () {
+  name: "sidebar",
+  data() {
     return {
-      collapses: [ 
-     { show: false },
-     { show: false },
-     { show: false }
-    ]
-    }
+      collapses: [{ show: false }, { show: false }, { show: false }],
+    };
   },
   methods: {
     collapseAll() {
@@ -164,28 +160,28 @@ export default {
         var elm_id = exp_elm[0].id;
         this.$root.$emit("bv::toggle::collapse", elm_id);
       }
-    }
+    },
   },
-  mounted () {
-    const body = document.querySelector('body')
+  mounted() {
+    const body = document.querySelector("body");
     // add class 'hover-open' to sidebar navitem while hover in sidebar-icon-only menu
-    document.querySelectorAll('.sidebar .nav-item').forEach(function (el) {
-      el.addEventListener('mouseover', function () {
-        if (body.classList.contains('sidebar-icon-only')) {
-          el.classList.add('hover-open')
+    document.querySelectorAll(".sidebar .nav-item").forEach(function (el) {
+      el.addEventListener("mouseover", function () {
+        if (body.classList.contains("sidebar-icon-only")) {
+          el.classList.add("hover-open");
         }
-      })
-      el.addEventListener('mouseout', function () {
-        if (body.classList.contains('sidebar-icon-only')) {
-          el.classList.remove('hover-open')
+      });
+      el.addEventListener("mouseout", function () {
+        if (body.classList.contains("sidebar-icon-only")) {
+          el.classList.remove("hover-open");
         }
-      })
-    })
+      });
+    });
   },
-  watch:{
-    $route () {
-       document.querySelector('#sidebar').classList.toggle('active');
-    }
-  } 
-}
+  watch: {
+    $route() {
+      document.querySelector("#sidebar").classList.toggle("active");
+    },
+  },
+};
 </script>

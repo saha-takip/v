@@ -12,7 +12,7 @@
     </div> -->
     <div class="row">
       <div class="col-md-3 stretch-card grid-margin">
-        <div class="card bg-gradient-info card-img-holder text-white">
+        <div class="custom card bg-gradient-info card-img-holder text-white">
           <div class="card-body">
             <img
               src="../../assets/images/dashboard/circle.svg"
@@ -29,7 +29,7 @@
         </div>
       </div>
       <div class="col-md-3 stretch-card grid-margin">
-        <div class="card bg-success card-img-holder text-white">
+        <div class="custom card bg-success card-img-holder text-white">
           <div class="card-body">
             <img
               src="../../assets/images/dashboard/circle.svg"
@@ -65,7 +65,7 @@
         </div>
       </div>
       <div class="col-md-3 stretch-card grid-margin">
-        <div class="card bg-gradient-success card-img-holder text-white">
+        <div class="custom card bg-gradient-success card-img-holder text-white">
           <div class="card-body">
             <img
               src="../../assets/images/dashboard/circle.svg"
@@ -82,7 +82,7 @@
         </div>
       </div>
       <div class="col-md-3 stretch-card grid-margin">
-        <div class="card bg-gradient-danger card-img-holder text-white">
+        <div class="custom card bg-gradient-danger card-img-holder text-white">
           <div class="card-body">
             <img
               src="../../assets/images/dashboard/circle.svg"
@@ -123,6 +123,8 @@
                 v-loading="loading"
                 :data="paginatedCriticalReceivables"
                 border
+                show-summary
+                :summary-method="getSummary"
                 style="width: 100%"
                 empty-text="Kritik limite ulaşan alacak bulunmuyor."
                 @row-click="handleRowClick"
@@ -383,6 +385,25 @@ export default {
       this.customers = customersData || [];
       this.transactions = transactionsData || [];
       this.loading = false;
+    },
+    getSummary({ columns }) {
+      const sums = [];
+      columns.forEach((column, index) => {
+        if (index === 0) {
+          sums[index] = "Toplam";
+          return;
+        }
+        if (column.property === "totalDebt") {
+          const total = this.filteredCriticalReceivables.reduce(
+            (sum, item) => sum + (Number(item.totalDebt) || 0),
+            0
+          );
+          sums[index] = `${this.formatNumber(total)} ₺`;
+        } else {
+          sums[index] = "";
+        }
+      });
+      return sums;
     },
     goToCustomer(customerId) {
       this.$router.push({
