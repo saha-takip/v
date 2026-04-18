@@ -150,6 +150,16 @@ export default {
       localStorage.removeItem("userProfile");
       localStorage.removeItem("supabase.auth.token");
       localStorage.removeItem("tenant_id");
+      
+      // Store'u da sıfırlayalım
+      this.$storeMutations.setUserProfile({
+        id: null,
+        full_name: '',
+        avatar_url: null,
+        role: ''
+      });
+      // Tenant'ı da varsayılana çekebiliriz (isteğe bağlı ama temizlik için iyi olur)
+      
       this.$router.push({ name: "login" });
     },
   },

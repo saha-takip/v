@@ -45,19 +45,13 @@
                     </el-button>
                   </div>
                   <div
-                    class="my-2 d-none justify-content-between align-items-center"
+                    class="my-2 d-flex justify-content-end align-items-center"
                   >
-                    <div class="form-check">
-                      <label class="form-check-label text-muted">
-                        <input type="checkbox" class="form-check-input" />
-                        Keep me signed in
-                        <i class="input-helper"></i>
-                      </label>
-                    </div>
                     <a
                       href="javascript:void(0);"
-                      class="auth-link text-black d-none"
-                      >Forgot password?</a
+                      class="auth-link text-black"
+                      @click="forgotPassword"
+                      >Şifremi Unuttum</a
                     >
                   </div>
                   <div class="text-center mt-4 font-weight-light d-none">
@@ -113,10 +107,10 @@ export default {
 
         const user = data.user;
 
-        // Fetch user profile to get tenant_id
+        // Fetch user profile and tenant branding immediately
         const { data: profile, error: profileError } = await supabase
           .from("profiles")
-          .select("*")
+          .select("*, tenants (*)")
           .eq("id", user.id)
           .single();
 
@@ -125,6 +119,13 @@ export default {
         // Save profile and tenant_id to localStorage
         localStorage.setItem("userProfile", JSON.stringify(profile));
         localStorage.setItem("tenant_id", profile.tenant_id);
+        localStorage.setItem("last_login_email", this.formData.email);
+
+        // Update global store immediately
+        this.$storeMutations.setUserProfile(profile);
+        if (profile.tenants) {
+          this.$storeMutations.setTenant(profile.tenants);
+        }
 
         this.$router.push({ name: "dashboard" });
       } catch (error) {
@@ -137,6 +138,15 @@ export default {
         this.loading = false;
       }
     },
+    async forgotPassword() {
+      this.$router.push({ name: "forgot-password" });
+    },
+  },
+  mounted() {
+    const savedEmail = localStorage.getItem("last_login_email");
+    if (savedEmail) {
+      this.formData.email = savedEmail;
+    }
   },
 };
 </script>

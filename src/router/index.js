@@ -1,20 +1,21 @@
 import Vue from 'vue'
 import Router from 'vue-router'
-
+import { supabase } from "@/supabase"
 import layout from '../layout'
 
 
 Vue.use(Router)
 
-export default new Router({
+const router = new Router({
   linkExactActiveClass: 'active',
   scrollBehavior: () => ({ y: 0 }),
-  mode: 'hash',
-  base: '/',
+  mode: 'history',
+  base: process.env.NODE_ENV === 'production' ? '/frontend/' : '/',
   routes: [
     {
       path: '/',
       component: layout,
+      meta: { requiresAuth: true },
       children: [
         {
           path: '',
@@ -49,70 +50,37 @@ export default new Router({
       ]
     },
     {
-      path: '/basic-ui',
-      component: layout,
-      children: [
-        {
-          path: 'buttons',
-          name: 'buttons',
-          component: () => import('@/pages/basic-ui/buttons')
-        },
-        {
-          path: 'dropdowns',
-          name: 'dropdowns',
-          component: () => import('@/pages/basic-ui/dropdowns')
-        },
-        {
-          path: 'typography',
-          name: 'typography',
-          component: () => import('@/pages/basic-ui/typography')
-        }
-      ]
-    },
-    {
-      path: '/charts',
-      component: layout,
-      children: [
-        {
-          path: 'chartjs',
-          name: 'chartjs',
-          component: () => import('@/pages/charts/chartjs')
-        },
-      ]
-    },
-    {
-      path: '/tables',
-      component: layout,
-      children: [
-        {
-          path: 'basic-tables',
-          name: 'basic-tables',
-          component: () => import('@/pages/tables/basic-tables')
-        }
-      ]
-    },
-    {
       path: '/auth',
       component: {
-        render (c) { return c('router-view') }
+        render(c) { return c('router-view') }
       },
       children: [
         {
           path: 'login',
           name: 'login',
-          component: () => import('@/pages/samples/auth-pages/login')
+          component: () => import('@/pages/auth-pages/login')
         },
         {
           path: 'register',
           name: 'register',
-          component: () => import('@/pages/samples/auth-pages/register')
+          component: () => import('@/pages/auth-pages/register')
+        },
+        {
+          path: 'sifremi-unuttum',
+          name: 'forgot-password',
+          component: () => import('@/pages/auth-pages/forgot-password')
+        },
+        {
+          path: 'sifre-sifirlama',
+          name: 'reset-password',
+          component: () => import('@/pages/auth-pages/reset-password')
         }
       ]
     },
     {
       path: '/error-pages',
       component: {
-        render (c) { return c('router-view') }
+        render(c) { return c('router-view') }
       },
       children: [
         {
@@ -128,21 +96,10 @@ export default new Router({
       ]
     },
     {
-      path: '/icons',
-      component: layout,
-      children: [
-        {
-          path: 'mdi-icons',
-          name: 'mdi-icons',
-          component: () => import('@/pages/icons/mdi-icons')
-        }
-      ]
-    },
-    {
       path: '*',
       redirect: '/error-404',
       component: {
-        render (c) { return c('router-view') }
+        render(c) { return c('router-view') }
       },
       children: [
         {
@@ -153,3 +110,30 @@ export default new Router({
     }
   ]
 })
+
+router.beforeEach((to, from, next) => {
+  const user = supabase.auth.user();
+  const requiresAuth = to.matched.some(record => record.meta.requiresAuth);
+
+  // 1. Eğer kullanıcı giriş yapmışsa
+  if (user) {
+    // Şifre sıfırlama sayfasındaysa, giriş yapmış olsa bile kovma (şifresini değiştirsin)
+    if (to.name === 'reset-password') {
+      return next();
+    }
+
+    // Diğer auth sayfalarına (login/register) gitmeye çalışıyorsa dashboard'a at
+    if (to.name === 'login' || to.name === 'register') {
+      return next({ name: 'dashboard' });
+    }
+  }
+
+  // 2. Auth gereken sayfaya giriş yapmış mı kontrolü
+  if (requiresAuth && !user) {
+    return next({ name: 'login' });
+  }
+
+  next();
+});
+
+export default router;
