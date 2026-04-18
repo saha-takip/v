@@ -15,7 +15,7 @@
                     alt="logo"
                   />
                 </div>
-                <h4>Satış Takip Programı <sup>®</sup></h4>
+                <h4>Saha Takip Programı <sup>®</sup></h4>
                 <form class="pt-3" @submit.prevent="login">
                   <div class="form-group">
                     <el-input
