@@ -140,7 +140,7 @@ export default {
           {
             redirectTo:
               window.location.origin +
-              (process.env.NODE_ENV === "production" ? "/frontend" : "") +
+              (process.env.NODE_ENV === "production" ? "/v" : "") +
               "/auth/sifre-sifirlama",
           }
         );

@@ -8,7 +8,7 @@
             <div class="col-xl-4 col-lg-6 mx-auto">
               <div class="auth-form-light text-left p-5">
                 <div class="brand-logo">
-                  <img src="../../../assets/images/logo.svg">
+                  <!-- <img src="../../../assets/images/logo.svg"> -->
                 </div>
                 <h4>New here?</h4>
                 <h6 class="font-weight-light">Signing up is easy. It only takes a few steps</h6>

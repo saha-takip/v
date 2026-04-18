@@ -3,14 +3,13 @@ import Router from 'vue-router'
 import { supabase } from "@/supabase"
 import layout from '../layout'
 
-
 Vue.use(Router)
 
 const router = new Router({
   linkExactActiveClass: 'active',
   scrollBehavior: () => ({ y: 0 }),
   mode: 'history',
-  base: process.env.NODE_ENV === 'production' ? '/frontend/' : '/',
+  base: process.env.NODE_ENV === 'production' ? '/v/' : '/',
   routes: [
     {
       path: '/',
