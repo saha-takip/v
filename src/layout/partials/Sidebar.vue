@@ -22,7 +22,7 @@
         </li>
         <li class="nav-item">
           <router-link class="nav-link" to="/profil-bilgileri" exact>
-            <i class="mdi mdi-account-card-details menu-icon"></i>
+            <i class="mdi mdi-account-card menu-icon"></i>
             <span class="menu-title">Profil Bilgileri</span>
           </router-link>
         </li>
