@@ -9,7 +9,7 @@
     "description": "Furkan Gıda Pazarlama şirketi için satış/tahsilat işlemlerini takip etmek üzere geliştirilmiştir.",
     "icons": [
         {
-            "src": "/mini-logo.png",
+            "src": "/v/mini-logo.png",
             "sizes": "192x192",
             "type": "image/png",
             "purpose": "any maskable"
@@ -21,13 +21,13 @@
             "sizes": "320x320",
             "type": "image/png",
             "form_factor": "wide",
-            "label": "Furkan Gıda Masaüstü",
+            "label": "Furkan Gıda Masaüstü"
         },
         {
             "src": "/v/medium-logo.png",
             "sizes": "320x320",
             "type": "image/png",
-            "label": "Furkan Gıda Mobil",
+            "label": "Furkan Gıda Mobil"
         }
     ]
 }

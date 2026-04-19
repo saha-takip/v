@@ -162,4 +162,12 @@ export default {
   z-index: 999;
   pointer-events: none;
 }
+@media (max-width: 991px) {
+  .version-info {
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100%;
+    text-align: center;
+  }
+}
 </style>
