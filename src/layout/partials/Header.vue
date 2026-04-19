@@ -34,7 +34,7 @@
       >
         <span class="mdi mdi-menu"></span>
       </button>
-      <div class="search-field d-none d-md-block">
+      <div class="search-field d-none d-md-block mr-3">
         <div class="header-search">
           <el-autocomplete
             v-model="searchQuery"
@@ -79,12 +79,14 @@
           </div>
         </b-nav-item>
         <b-nav-item
-          class="nav-logout d-none d-lg-flex ml-1"
+          class="nav-logout ml-1"
           @click="logout"
           style="border-left: 1px solid #ebedf2; padding-left: 15px"
         >
-          <i class="mdi mdi-power mr-2 text-danger"></i>
-          <span class="font-weight-bold text-danger">Çıkış Yap</span>
+          <i class="mdi mdi-power mr-lg-2 text-danger"></i>
+          <span class="font-weight-bold text-danger d-none d-lg-inline-block"
+            >Çıkış Yap</span
+          >
         </b-nav-item>
       </b-navbar-nav>
       <button
@@ -150,16 +152,16 @@ export default {
       localStorage.removeItem("userProfile");
       localStorage.removeItem("supabase.auth.token");
       localStorage.removeItem("tenant_id");
-      
+
       // Store'u da sıfırlayalım
       this.$storeMutations.setUserProfile({
         id: null,
-        full_name: '',
+        full_name: "",
         avatar_url: null,
-        role: ''
+        role: "",
       });
       // Tenant'ı da varsayılana çekebiliriz (isteğe bağlı ama temizlik için iyi olur)
-      
+
       this.$router.push({ name: "login" });
     },
   },
@@ -172,7 +174,7 @@ export default {
     padding: 26px !important;
   }
   .popup .el-dialog {
-    width: 45% !important;
+    width: 55% !important;
   }
 }
 @media (min-width: 1281px) {

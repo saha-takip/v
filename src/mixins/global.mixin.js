@@ -1,16 +1,23 @@
 import { GROUP_NAME_LIST } from '@/util/constants';
 import { supabase } from '@/supabase';
+import { store, mutations } from '@/store';
 
 export default {
     data() {
         return {
-            _zoneList: [], // Supabase'den çekilen bölgeler
+            // Local state kaldırıldı, store kullanılacak
         };
     },
     async created() {
-        await this._fetchZones();
+        // Eğer store'da henüz veri yoksa bir kez çekelim
+        if (!store.zones || store.zones.length === 0) {
+            await this._fetchZones();
+        }
     },
     computed: {
+        _zoneList() {
+            return store.zones || [];
+        },
         getGroupNameList() {
             // Önce Supabase verisini dene, yoksa sabit listeye dön
             return (groupId) => {
@@ -44,12 +51,12 @@ export default {
                 .order('day', { ascending: true });
 
             if (!error && data) {
-                // value olarak `day` (number) kullan — customers.group alanı zones.day saklar
-                this._zoneList = data.map(z => ({
+                const mappedZones = data.map(z => ({
                     label: z.name,
                     value: Number(z.day),
                     id: z.id,
                 }));
+                mutations.setZones(mappedZones);
             }
         },
     },

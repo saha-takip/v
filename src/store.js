@@ -23,7 +23,8 @@ export const store = Vue.observable({
         full_name: '',
         avatar_url: null,
         role: ''
-    }
+    },
+    zones: []
 });
 
 // İlk açılışta title ve favicon'u set edelim
@@ -73,5 +74,8 @@ export const mutations = {
     },
     setUserProfile(profileData) {
         store.userProfile = { ...store.userProfile, ...profileData };
+    },
+    setZones(zonesData) {
+        store.zones = zonesData;
     }
 };

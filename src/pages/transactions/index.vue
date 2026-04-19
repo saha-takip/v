@@ -40,11 +40,11 @@
       </h3>
     </div>
     <div class="card">
-      <div class="card-body">
+      <div class="custom card-body">
         <!-- <h3 class="text-md mb-3">{{ getCurrentCompany }}</h3> -->
         <div class="row">
           <!-- filter start -->
-          <div class="col-2 col-sm-4 col-md-3 mb-3 pl-1 ml-3">
+          <div class="col-2 col-sm-4 mb-3 pl-1 ml-3">
             <el-date-picker
               class="w-full"
               v-model="filter.transactionDate"
@@ -59,14 +59,14 @@
             >
             </el-date-picker>
           </div>
-          <div class="col-2 col-sm-4 col-md-3 mt-3 pl-0">
+          <div class="col-2 col-sm-4 mt-3 pl-0">
             <el-radio-group v-model="filter.transactionType" size="small">
               <el-radio :label="0">Satış</el-radio>
               <el-radio :label="1">Tahsilat</el-radio>
               <el-radio :label="null">Tümü</el-radio>
             </el-radio-group>
           </div>
-          <div class="col-3 col-sm-3 col-md-3 mt-3 ml-auto">
+          <div class="col-3 col-sm-4 mt-3 ml-auto">
             <div class="d-flex justify-content-end">
               <h4 class="text-lg">Toplam Borç:</h4>
               <!-- buradaki alan direkt servisten gelmeli, işlem sonraları direkt update olabilir. çünkü filtre yapınca değişiyor-->
@@ -299,7 +299,7 @@
                   </template>
                 </template>
               </el-table-column> -->
-              <el-table-column prop="note" label="Açıklama">
+              <el-table-column prop="note" label="Açıklama" width="300px">
                 <template v-slot="scope">
                   <template v-if="scope.row.id == 'temp'">
                     <el-input
@@ -824,7 +824,7 @@ export default {
         // orijinal DB alanları (güncelleme için)
         _raw: t,
       }));
-      
+
       this.loading = false;
     },
     changeDate(val) {

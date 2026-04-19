@@ -11,7 +11,7 @@
       </h3>
     </div> -->
     <div class="row">
-      <div class="col-md-3 stretch-card grid-margin">
+      <div class="col-md-6 col-xl-3 stretch-card grid-margin">
         <div class="custom card bg-gradient-info card-img-holder text-white">
           <div class="card-body">
             <img
@@ -28,7 +28,7 @@
           </div>
         </div>
       </div>
-      <div class="col-md-3 stretch-card grid-margin">
+      <div class="col-md-6 col-xl-3 stretch-card grid-margin">
         <div class="custom card bg-success card-img-holder text-white">
           <div class="card-body">
             <img
@@ -64,7 +64,7 @@
           </div>
         </div>
       </div>
-      <div class="col-md-3 stretch-card grid-margin">
+      <div class="col-md-6 col-xl-3 stretch-card grid-margin">
         <div class="custom card bg-gradient-success card-img-holder text-white">
           <div class="card-body">
             <img
@@ -81,7 +81,7 @@
           </div>
         </div>
       </div>
-      <div class="col-md-3 stretch-card grid-margin">
+      <div class="col-md-6 col-xl-3 stretch-card grid-margin">
         <div class="custom card bg-gradient-danger card-img-holder text-white">
           <div class="card-body">
             <img
@@ -132,35 +132,41 @@
               >
                 <el-table-column prop="company_name" label="Firma Adı" sortable>
                 </el-table-column>
-                <el-table-column prop="phone" label="Telefon">
+                <el-table-column prop="phone" label="Telefon" width="170px">
                   <template v-slot="scope">
                     <a :href="`tel:${scope.row.phone}`">{{
                       scope.row.phone
                     }}</a>
                   </template>
                 </el-table-column>
-                <el-table-column label="Bölge">
+                <el-table-column label="Bölge" width="135px">
                   <template v-slot="scope">
                     {{ getGroupNameList(scope.row.zones?.day) }}
                   </template>
                 </el-table-column>
                 <el-table-column
-                  label="Son İşlem Tarihi"
+                  label="Son İşl. Tar."
                   sortable
                   sort-by="lastActionDate"
+                  width="120px"
                 >
                   <template v-slot="scope">
                     {{ formatDate(scope.row.lastActionDate) }}
                   </template>
                 </el-table-column>
-                <el-table-column prop="totalDebt" label="Toplam Borç" sortable>
+                <el-table-column
+                  prop="totalDebt"
+                  label="Toplam Borç"
+                  sortable
+                  width="140px"
+                >
                   <template v-slot="scope">
                     <label class="badge badge-danger"
                       >{{ formatNumber(scope.row.totalDebt) }} ₺</label
                     >
                   </template>
                 </el-table-column>
-                <el-table-column fixed="right" label="İşlem" width="120">
+                <el-table-column fixed="right" label="İşlem" width="105">
                   <template v-slot="scope">
                     <el-button
                       type="primary"

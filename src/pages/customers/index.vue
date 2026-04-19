@@ -144,7 +144,7 @@
                   </el-tooltip>
                 </template>
               </el-table-column>
-              <el-table-column fixed="right" label="İşlem" width="235">
+              <el-table-column fixed="right" label="İşlem" width="195">
                 <template v-slot="scope">
                   <div class="process">
                     <el-button
@@ -278,11 +278,12 @@
       title="Rota oluştur"
       :visible.sync="createRouteDialog"
       class="popup"
+      width="45%"
       @close="closeRouteDialog"
     >
       <el-form label-position="top" :model="formData" label-width="100px">
         <el-row :gutter="20">
-          <el-col :span="8">
+          <el-col :span="12">
             <el-form-item class="mb-0" label="Bölge Seçin">
               <el-select
                 class="w-full"
@@ -303,7 +304,7 @@
               </el-select>
             </el-form-item>
           </el-col>
-          <el-col :span="9">
+          <el-col :span="12">
             <el-form-item class="mb-0" label="İşlem Tipi">
               <el-radio-group v-model="filter.visitType" size="small">
                 <el-radio :label="1">Tahsilat</el-radio>
@@ -332,14 +333,14 @@
             type="info"
             :closable="false"
             show-icon
-            class="mb-4"
+            class="mb-3"
           >
           </el-alert>
         </el-col>
       </el-row>
 
       <el-table
-        :data="getRouteList"
+        :data="paginatedRouteList"
         border
         style="width: 100%"
         show-summary
@@ -371,6 +372,16 @@
           </template>
         </el-table-column>
       </el-table>
+
+      <el-pagination
+        background
+        layout="prev, pager, next"
+        :total="getRouteList.length"
+        :page-size="pageSizeRoute"
+        :current-page="currentPageRoute"
+        @current-change="handlePageRouteChange"
+        style="margin-top: 20px; text-align: center"
+      />
       <span slot="footer" class="dialog-footer">
         <el-button @click="createRouteDialog = false">Vazgeç</el-button>
         <el-button
@@ -402,6 +413,8 @@ export default {
       isEdit: false,
       pageSize: 10,
       currentPage: 1,
+      pageSizeRoute: 6,
+      currentPageRoute: 1,
       dialogVisible: false,
       deleteCustomerPopupStatus: false,
       currentCustomer: {},
@@ -476,6 +489,11 @@ export default {
       const start = (this.currentPage - 1) * this.pageSize;
       const end = start + this.pageSize;
       return this.filteredData?.slice(start, end);
+    },
+    paginatedRouteList() {
+      const start = (this.currentPageRoute - 1) * this.pageSizeRoute;
+      const end = start + this.pageSizeRoute;
+      return this.getRouteList?.slice(start, end);
     },
     filteredData() {
       let list = this.getCustomerList || [];
@@ -600,7 +618,8 @@ export default {
       });
       this.loading = false;
     },
-    openCreateRouteDialog() {
+    async openCreateRouteDialog() {
+      await this._fetchZones();
       this.createRouteDialog = true;
       const companyName = this.getCustomerList.companyName;
       this.exportTableData = this.getCustomerList.map((item) => ({
@@ -617,6 +636,10 @@ export default {
       this.filter.groupForRoute = this.todayGroupNumber
         ? [this.todayGroupNumber]
         : [];
+      this.currentPageRoute = 1;
+    },
+    handlePageRouteChange(page) {
+      this.currentPageRoute = page;
     },
     closeRouteDialog() {
       this.createRouteDialog = false;
@@ -845,7 +868,8 @@ export default {
     handlePageChange(page) {
       this.currentPage = page;
     },
-    isOpenDialog(type, row = {}) {
+    async isOpenDialog(type, row = {}) {
+      await this._fetchZones();
       this.isEdit = type === "edit";
       this.customerDetail = row;
 

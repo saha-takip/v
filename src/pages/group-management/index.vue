@@ -48,7 +48,7 @@
                   {{ getDayLabel(scope.row.day) }}
                 </template>
               </el-table-column>
-              <el-table-column fixed="right" label="İşlem" width="95">
+              <el-table-column fixed="right" label="İşlem" width="55">
                 <template v-slot="scope">
                   <el-button
                     type="primary"
@@ -56,14 +56,6 @@
                     icon="el-icon-edit"
                     circle
                     @click="isOpenDialog('edit', scope.row)"
-                  ></el-button>
-                  <el-button
-                    type="danger"
-                    size="small"
-                    icon="el-icon-delete"
-                    circle
-                    @click="deleteZone(scope.row)"
-                    :disabled="scope.row.totalOutputWeight > 0"
                   ></el-button>
                 </template>
               </el-table-column>
@@ -98,6 +90,7 @@
                 filterable
                 clearable
                 placeholder="Gün seçin"
+                :disabled="isEditMode"
               >
                 <el-option
                   v-for="item in getGroupDayList"
@@ -123,16 +116,18 @@
 <script>
 import { supabase } from "@/supabase";
 import { GROUP_DAY_LIST } from "@/util/constants";
+import globalMixin from "@/mixins/global.mixin.js";
 
 export default {
   name: "group-management",
+  mixins: [globalMixin],
   data() {
     return {
       pageSize: 10,
       currentPage: 1,
       isEditMode: false,
       dialogVisible: false,
-      groupList: [],
+      // groupList state'i mixin'den (_zoneList) gelecek
       selectedRow: null,
       formData: {
         groupName: "",
@@ -145,11 +140,20 @@ export default {
     };
   },
   mounted() {
-    this.fetchGroups();
+    this._fetchZones();
   },
   computed: {
     getZoneList() {
-      return this.groupList;
+      // mixin'deki _zoneList'i kullanıyoruz.
+      // Not: Mixin'deki _zoneList [{label, value, id}] formatında.
+      // Buradaki tablo ise orjinal DB formatını [name, day, id] bekleyebilir.
+      // Ancak tablo template'inde scope.row.name kullanılmış.
+      // Mixin'de label -> name, value -> day eşleşmesini kontrol edelim.
+      return this._zoneList.map((z) => ({
+        id: z.id,
+        name: z.label,
+        day: z.value,
+      }));
     },
     getDayLabel() {
       return (day) =>
@@ -182,28 +186,7 @@ export default {
     },
   },
   methods: {
-    async fetchGroups() {
-      this.loading = true;
-      const tenant_id = localStorage.getItem("tenant_id");
-      if (!tenant_id) {
-        this.loading = false;
-        return;
-      }
-
-      const { data, error } = await supabase
-        .from("zones")
-        .select("*")
-        .eq("tenant_id", tenant_id);
-
-      if (error) {
-        console.error(error);
-        this.loading = false;
-        return;
-      }
-
-      this.groupList = data;
-      this.loading = false;
-    },
+    // fetchGroups kaldırıldı, mixin'deki _fetchZones kullanılacak
     handlePageChange(page) {
       this.currentPage = page;
     },
@@ -217,37 +200,6 @@ export default {
     },
     closePopup() {
       this.dialogVisible = false;
-    },
-    deleteZone(row) {
-      this.$confirm(
-        `${row.name} bölgesi silmek istediğinize emin misiniz?`,
-        "Onay",
-        {
-          confirmButtonText: "Evet",
-          cancelButtonText: "Hayır",
-          type: "warning",
-        }
-      )
-        .then(async () => {
-          const { data, error } = await supabase
-            .from("zones")
-            .delete()
-            .eq("id", row.id);
-
-          if (!error) {
-            await this.fetchGroups();
-            this.$message.success("Bölge başarıyla silindi.");
-          } else {
-            console.error(error, data);
-            this.$message.error(
-              "Silinemedi. Lütfen yetkinizi veya bağlantıyı kontrol edin."
-            );
-          }
-        })
-        .catch((err) => {
-          if (err !== "cancel") console.error(err);
-          this.$message.info("Silme işlemi iptal edildi.");
-        });
     },
     async isOpenDialog(type, row = {}) {
       this.isEditMode = type === "edit";
@@ -271,7 +223,7 @@ export default {
         return;
       }
 
-      const exists = this.groupList.some(
+      const exists = this.groupList?.some(
         (g) => String(g.day) === String(day) && g.id !== this.selectedRow?.id
       );
       if (exists) {
@@ -289,7 +241,7 @@ export default {
           .select();
 
         if (!error && data && data.length > 0) {
-          await this.fetchGroups();
+          await this._fetchZones();
           this.$message.success("Bölge başarıyla güncellendi.");
         } else {
           console.error(error, data);
@@ -304,7 +256,7 @@ export default {
           .select();
 
         if (!error && data && data.length > 0) {
-          await this.fetchGroups();
+          await this._fetchZones();
           this.$message.success("Bölge başarıyla eklendi.");
         } else {
           console.error(error, data);

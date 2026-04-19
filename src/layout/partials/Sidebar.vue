@@ -122,8 +122,8 @@
               </li>
             </ul>
           </b-collapse>
-        </li> -->
-        <!-- <li class="nav-item">
+        </li> 
+        <li class="nav-item">
           <span class="nav-link" v-b-toggle="'user-page-dropdown'">
             <span class="menu-title">User Pages</span>
             <i class="menu-arrow"></i>
@@ -132,20 +132,43 @@
           <b-collapse accordion="sidebar-accordion" id="user-page-dropdown">
             <ul class="nav flex-column sub-menu">
               <li class="nav-item">
-                <router-link class="nav-link" target="_blank" to="/auth-pages/login/">Login</router-link>
+                <router-link
+                  class="nav-link"
+                  target="_blank"
+                  to="/auth-pages/login/"
+                  >Login</router-link
+                >
               </li>
               <li class="nav-item">
-                <router-link class="nav-link" target="_blank" to="/auth-pages/register/">Register</router-link>
+                <router-link
+                  class="nav-link"
+                  target="_blank"
+                  to="/auth-pages/register/"
+                  >Register</router-link
+                >
               </li>
             </ul>
           </b-collapse>
-        </li> -->
+        </li>-->
+
+        <li class="nav-item d-lg-none">
+          <a
+            class="nav-link text-danger logout-btn"
+            href="javascript:void(0);"
+            @click="logout"
+          >
+            <i class="mdi mdi-power menu-icon"></i>
+            <span class="menu-title">Çıkış Yap</span>
+          </a>
+        </li>
       </ul>
     </nav>
   </section>
 </template>
 
 <script>
+import { supabase } from "@/supabase";
+
 export default {
   name: "sidebar",
   data() {
@@ -160,6 +183,24 @@ export default {
         var elm_id = exp_elm[0].id;
         this.$root.$emit("bv::toggle::collapse", elm_id);
       }
+    },
+    async logout() {
+      await supabase.auth.signOut();
+      localStorage.removeItem("userProfile");
+      localStorage.removeItem("supabase.auth.token");
+      localStorage.removeItem("tenant_id");
+
+      // Store'u da sıfırlayalım (global mutate mixin üzerinden erişilebilir)
+      if (this.$storeMutations) {
+        this.$storeMutations.setUserProfile({
+          id: null,
+          full_name: "",
+          avatar_url: null,
+          role: "",
+        });
+      }
+
+      this.$router.push({ name: "login" });
     },
   },
   mounted() {
