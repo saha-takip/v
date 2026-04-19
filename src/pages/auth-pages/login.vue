@@ -69,6 +69,7 @@
       </div>
       <!-- page-body-wrapper ends -->
     </div>
+    <div class="version-info">Tüm Hakları Saklıdır. &copy; 2025 | version 1.0.0</div>
   </section>
 </template>
 
@@ -150,3 +151,15 @@ export default {
   },
 };
 </script>
+
+<style scoped>
+.version-info {
+  position: fixed;
+  right: 15px;
+  bottom: 10px;
+  font-size: 12px;
+  color: #adb5bd;
+  z-index: 999;
+  pointer-events: none;
+}
+</style>

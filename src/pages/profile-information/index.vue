@@ -4,7 +4,7 @@
       <h3 class="page-title">
         <div>
           <span class="page-title-icon bg-gradient-success text-white mr-2">
-            <i class="mdi mdi-account-card-details"></i>
+            <i class="mdi mdi-account-card"></i>
           </span>
           Profil ve Kurumsal Bilgiler
         </div>

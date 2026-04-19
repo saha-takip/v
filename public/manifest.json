@@ -1,7 +1,7 @@
 {
     "name": "Furkan Gıda Pazarlama",
     "short_name": "FurkanGıda",
-    "start_url": "/",
+    "start_url": "/v/",
     "display": "standalone",
     "orientation": "any",
     "background_color": "#ffffff",
@@ -11,22 +11,23 @@
         {
             "src": "/mini-logo.png",
             "sizes": "192x192",
-            "type": "image/png"
+            "type": "image/png",
+            "purpose": "any maskable"
         }
     ],
     "screenshots": [
         {
-            "src": "/medium-logo.png",
+            "src": "/v/medium-logo.png",
             "sizes": "320x320",
             "type": "image/png",
             "form_factor": "wide",
-            "label": "Furkan Gıda Masaüstü"
+            "label": "Furkan Gıda Masaüstü",
         },
         {
-            "src": "/medium-logo.png",
+            "src": "/v/medium-logo.png",
             "sizes": "320x320",
             "type": "image/png",
-            "label": "Furkan Gıda Mobil"
+            "label": "Furkan Gıda Mobil",
         }
     ]
 }

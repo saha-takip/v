@@ -27,7 +27,6 @@
 @import "../../../node_modules/bootstrap/scss/bootstrap";
 @import '../../../node_modules/bootstrap-vue/src/index.scss';
 
-@import "../../../node_modules/vue2-datepicker/scss/index";
 
 /*-------------------------------------------------------------------*/
 /* === Template mixins === */
@@ -74,10 +73,6 @@
 @import "components/nav";
 @import "components/dashboard";
 
-/*-------------------------------------------------------------------*/
-/* === Plugin override === */
-@import "components/plugin-overrides/chartist"; 
-@import "components/plugin-overrides/datepicker";
 
 /*-------------------------------------------------------------------*/
 /* === Landing screens === */

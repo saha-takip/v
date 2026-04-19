@@ -32,11 +32,6 @@ const router = new Router({
           component: () => import('@/pages/transactions')
         },
         {
-          name: 'transaction-detail',
-          path: '/tahsilat-hareketleri/detay/:id',
-          component: () => import('@/pages/transactions/detail')
-        },
-        {
           path: '/bolge-yonetimi',
           name: 'group-management',
           component: () => import('@/pages/group-management')
@@ -77,33 +72,15 @@ const router = new Router({
       ]
     },
     {
-      path: '/error-pages',
-      component: {
-        render(c) { return c('router-view') }
-      },
-      children: [
-        {
-          path: 'error-404',
-          name: 'error-404',
-          component: () => import('@/pages/samples/error-pages/error-404')
-        },
-        {
-          path: 'error-500',
-          name: 'error-500',
-          component: () => import('@/pages/samples/error-pages/error-500')
-        }
-      ]
-    },
-    {
       path: '*',
-      redirect: '/error-404',
+      redirect: '/404',
       component: {
         render(c) { return c('router-view') }
       },
       children: [
         {
-          path: 'error-404',
-          component: () => import('@/pages/samples/error-pages/error-404')
+          path: '404',
+          component: () => import('@/pages/error-pages/404')
         }
       ]
     }

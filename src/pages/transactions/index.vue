@@ -299,7 +299,11 @@
                   </template>
                 </template>
               </el-table-column> -->
-              <el-table-column prop="note" label="Açıklama" width="300px">
+              <el-table-column 
+                prop="note" 
+                label="Açıklama"
+                :width="windowWidth <= 991 ? '300px' : ''"
+              >
                 <template v-slot="scope">
                   <template v-if="scope.row.id == 'temp'">
                     <el-input
@@ -602,15 +606,20 @@ export default {
         note: "",
       },
       loading: false,
+      windowWidth: window.innerWidth,
     };
   },
   mounted() {
+    window.addEventListener("resize", this.handleResize);
     const { q } = this.$route.query;
     this.currentCustomer.id = q;
     if (q) {
       this.fetchCustomer(q);
       this.fetchTransactions(q);
     }
+  },
+  beforeDestroy() {
+    window.removeEventListener("resize", this.handleResize);
   },
   computed: {
     getPopupTitle() {
@@ -770,6 +779,9 @@ export default {
       const d = new Date(date);
       d.setHours(12, 0, 0, 0);
       return d.toISOString();
+    },
+    handleResize() {
+      this.windowWidth = window.innerWidth;
     },
     getCollectionTypeLabel(value) {
       if (!value) return "-";
