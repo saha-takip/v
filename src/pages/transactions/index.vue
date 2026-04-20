@@ -545,6 +545,23 @@
         <el-button type="primary">Kaydet</el-button>
       </span>
     </el-dialog>
+
+    <!-- PDF Önizleme Dialog -->
+    <el-dialog
+      title="PDF Önizleme"
+      :visible.sync="pdfPreviewVisible"
+      width="80%"
+      top="5vh"
+      @close="closePdfPreview"
+    >
+      <div v-if="generatedPdfUrl" style="height: 70vh;">
+        <iframe :src="generatedPdfUrl + '#navpanes=0'" width="100%" height="100%" frameborder="0"></iframe>
+      </div>
+      <span slot="footer" class="dialog-footer">
+        <el-button @click="pdfPreviewVisible = false">Kapat</el-button>
+        <el-button type="primary" icon="el-icon-download" @click="downloadPdf">İndir</el-button>
+      </span>
+    </el-dialog>
   </div>
 </template>
 
@@ -607,6 +624,9 @@ export default {
       },
       loading: false,
       windowWidth: window.innerWidth,
+      pdfPreviewVisible: false,
+      generatedPdfUrl: "",
+      pdfDocGenerator: null,
     };
   },
   mounted() {
@@ -973,10 +993,27 @@ export default {
       }
 
       const pdfDocGenerator = pdfMake.createPdf(docDefinition);
+      this.pdfDocGenerator = pdfDocGenerator;
       pdfDocGenerator.getBlob((blob) => {
-        const url = URL.createObjectURL(blob);
-        window.open(url, "_blank");
+        if (this.generatedPdfUrl) {
+          URL.revokeObjectURL(this.generatedPdfUrl);
+        }
+        this.generatedPdfUrl = URL.createObjectURL(blob);
+        this.pdfPreviewVisible = true;
       });
+    },
+    downloadPdf() {
+      if (this.pdfDocGenerator) {
+        const fileName = `${this.currentCustomer.currentCompany}_Ekstre_${new Date().toLocaleDateString("tr-TR")}.pdf`;
+        this.pdfDocGenerator.download(fileName);
+      }
+    },
+    closePdfPreview() {
+      if (this.generatedPdfUrl) {
+        URL.revokeObjectURL(this.generatedPdfUrl);
+        this.generatedPdfUrl = "";
+      }
+      this.pdfDocGenerator = null;
     },
     handlePageChange(page) {
       this.currentPage = page;

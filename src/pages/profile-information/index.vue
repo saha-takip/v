@@ -305,17 +305,24 @@ export default {
         this.savingTenant = false;
       }
     },
-
     async updateUser() {
       this.savingUser = true;
       try {
-        const { error } = await supabase
+        const { data, error } = await supabase
           .from("profiles")
           .update({ full_name: this.userForm.full_name })
           .eq("id", this.$storeState.userProfile.id)
-          .select("*");
+          .select("");
 
         if (error) throw error;
+
+        if (!data || data.length === 0) {
+          console.error(
+            "Güncelleme başarısız: Satır bulunamadı veya RLS engeli."
+          );
+          this.$message.error("Güncelleme yetki engeline takıldı.");
+          return;
+        }
 
         this.$storeMutations.setUserProfile({
           full_name: this.userForm.full_name,
