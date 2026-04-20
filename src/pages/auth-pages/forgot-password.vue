@@ -74,7 +74,7 @@
                         >Tekrar Gönder</a
                       >
                       <router-link
-                        to="/auth/login"
+                        to="/auth/giris"
                         class="text-primary text-small font-weight-bold"
                         >Giriş Ekranına Dön</router-link
                       >

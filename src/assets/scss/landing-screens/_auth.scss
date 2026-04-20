@@ -2,46 +2,57 @@
 .login {
 	background-color: $login-body-bg !important;
 }
+
 .auth {
 	.login-half-bg {
 		background: url("assets/images/auth/login-bg.jpg");
 		background-size: cover;
 	}
+
 	.register-half-bg {
 		background: url("assets/images/auth/register-bg.jpg");
 		background-size: cover;
 	}
+
 	&.lock-full-bg {
 		background: url("assets/images/auth/lockscreen-bg.jpg");
 		background-size: cover;
 	}
+
 	.lock-profile-img {
 		width: 90px;
 		height: 90px;
 		border-radius: 100%;
 	}
+
 	.auth-form-dark {
 		background: rgba($black, .6);
 		color: $white;
+
 		.form-control {
 			border-color: rgba($white, .2);
 			color: $white;
-			@include input-placeholder{
+
+			@include input-placeholder {
 				color: $white;
 			}
 		}
 	}
+
 	.auth-form-light {
 		max-width: 400px !important;
 		margin: 0 auto;
 		background: $white;
 		box-shadow: 1px 3px 80px rgba(0, 0, 0, .1);
 		border-radius: 16px;
+
 		select {
 			color: $input-placeholder-color;
 		}
+
 		.input-group {
 			.form-control {
+
 				&:focus,
 				&:active {
 					border-color: $border-color;
@@ -49,22 +60,28 @@
 			}
 		}
 	}
+
 	.auth-form-transparent {
 		background: transparent;
+
 		.form-control,
 		.input-group-text {
 			border-color: theme-color(secondary);
+
 			&:focus,
 			&:active {
 				border-color: theme-color(secondary);
 			}
 		}
+
 		select {
 			outline-color: theme-color(secondary);
 		}
 	}
+
 	&.auth-img-bg {
 		padding: 0;
+
 		.auth-form-transparent {
 			@media (min-width:768px) {
 				width: 78%;
@@ -72,24 +89,31 @@
 			}
 		}
 	}
+
 	.brand-logo {
 		margin-bottom: 1rem;
+
 		img {
 			height: 60px;
+
 			@media (max-width: 991px) {
 				height: 50px;
 			}
 		}
 	}
+
 	.login-button {
 		width: 100%;
 	}
+
 	form {
 		.form-group {
 			margin-bottom: 1.5rem;
+
 			label {
 				font-size: .8125rem;
 			}
+
 			.form-control {
 				background: transparent;
 				border-radius: 0;
@@ -97,12 +121,15 @@
 				height: auto;
 			}
 		}
+
 		.auth-form-btn {
 			height: 50px;
 			line-height: 1.5;
 		}
+
 		.auth-link {
 			font-size: $default-font-size;
+
 			&:hover {
 				color: initial;
 			}

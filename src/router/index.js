@@ -50,14 +50,9 @@ const router = new Router({
       },
       children: [
         {
-          path: 'login',
+          path: 'giris',
           name: 'login',
           component: () => import('@/pages/auth-pages/login')
-        },
-        {
-          path: 'register',
-          name: 'register',
-          component: () => import('@/pages/auth-pages/register')
         },
         {
           path: 'sifremi-unuttum',

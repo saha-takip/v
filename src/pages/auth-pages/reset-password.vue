@@ -48,7 +48,7 @@
                   </div>
                   <div class="text-center mt-4 font-weight-light">
                     Vazgeçtiniz mi?
-                    <router-link to="/auth/login" class="text-primary"
+                    <router-link to="/auth/giris" class="text-primary"
                       >Giriş Yap</router-link
                     >
                   </div>
