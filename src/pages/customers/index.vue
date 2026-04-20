@@ -198,12 +198,18 @@
         <el-row :gutter="16">
           <el-col :span="12">
             <el-form-item label="Firma Adı">
-              <el-input v-model="formData.companyName" />
+              <el-input
+                v-model="formData.companyName"
+                @input="formData.companyName"
+              />
             </el-form-item>
           </el-col>
           <el-col :span="12">
             <el-form-item label="Yetkili Adı Soyadı">
-              <el-input v-model="formData.companyAuthor" />
+              <el-input
+                v-model="formData.companyAuthor"
+                @input="formData.companyAuthor"
+              />
             </el-form-item>
           </el-col>
         </el-row>
@@ -863,7 +869,11 @@ export default {
         },
       };
 
-      pdfMake.createPdf(docDefinition).open();
+      const pdfDocGenerator = pdfMake.createPdf(docDefinition);
+      pdfDocGenerator.getBlob((blob) => {
+        const url = URL.createObjectURL(blob);
+        window.open(url, "_blank");
+      });
     },
     handlePageChange(page) {
       this.currentPage = page;

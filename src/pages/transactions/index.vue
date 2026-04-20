@@ -299,8 +299,8 @@
                   </template>
                 </template>
               </el-table-column> -->
-              <el-table-column 
-                prop="note" 
+              <el-table-column
+                prop="note"
                 label="Açıklama"
                 :width="windowWidth <= 991 ? '300px' : ''"
               >
@@ -972,7 +972,11 @@ export default {
         });
       }
 
-      pdfMake.createPdf(docDefinition).open();
+      const pdfDocGenerator = pdfMake.createPdf(docDefinition);
+      pdfDocGenerator.getBlob((blob) => {
+        const url = URL.createObjectURL(blob);
+        window.open(url, "_blank");
+      });
     },
     handlePageChange(page) {
       this.currentPage = page;
