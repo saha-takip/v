@@ -9,6 +9,11 @@ import { supabase } from "@/supabase";
 
 export default {
   name: 'app',
+  data() {
+    return {
+      offlineNotification: null
+    };
+  },
   async created() {
     const tenant_id = localStorage.getItem('tenant_id');
     const profileStr = localStorage.getItem('userProfile');
@@ -31,6 +36,37 @@ export default {
         
       if (!error && data) {
         this.$storeMutations.setTenant(data);
+      }
+    }
+  },
+  mounted() {
+    window.addEventListener('online', this.updateOnlineStatus);
+    window.addEventListener('offline', this.updateOnlineStatus);
+  },
+  beforeDestroy() {
+    window.removeEventListener('online', this.updateOnlineStatus);
+    window.removeEventListener('offline', this.updateOnlineStatus);
+  },
+  methods: {
+    updateOnlineStatus() {
+      const condition = navigator.onLine ? "online" : "offline";
+      if (condition === "offline") {
+        this.offlineNotification = this.$notify({
+          title: 'Bağlantı Kesildi',
+          message: 'İnternet bağlantınız koptu. Lütfen bağlantınızı kontrol edin.',
+          type: 'error',
+          duration: 0, // Kapanmasın
+        });
+      } else {
+        if (this.offlineNotification) {
+          this.offlineNotification.close();
+        }
+        this.$notify({
+          title: 'Bağlantı Kuruldu',
+          message: 'Tekrar çevrimiçi oldunuz.',
+          type: 'success',
+          duration: 3000,
+        });
       }
     }
   }
