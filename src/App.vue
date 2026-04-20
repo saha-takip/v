@@ -51,20 +51,16 @@ export default {
     updateOnlineStatus() {
       const condition = navigator.onLine ? "online" : "offline";
       if (condition === "offline") {
-        this.offlineNotification = this.$notify({
-          title: 'Bağlantı Kesildi',
-          message: 'İnternet bağlantınız koptu. Lütfen bağlantınızı kontrol edin.',
-          type: 'error',
-          duration: 0, // Kapanmasın
+        this.offlineNotification = this.$message.error({
+          message: 'İnternet bağlantınız koptu. Lütfen bağlantınızı kontrol edin!',
+          duration: 0,
         });
       } else {
         if (this.offlineNotification) {
           this.offlineNotification.close();
         }
-        this.$notify({
-          title: 'Bağlantı Kuruldu',
-          message: 'Tekrar çevrimiçi oldunuz.',
-          type: 'success',
+        this.$message.success({
+          message: 'Şu an çevrimiçisiniz!',
           duration: 3000,
         });
       }
