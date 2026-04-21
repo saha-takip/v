@@ -328,7 +328,9 @@ export default {
     criticalReceivables() {
       return this.customerDebts
         .filter((c) => c.totalDebt >= 20000)
-        .sort((a, b) => b.totalDebt - a.totalDebt);
+        .sort((a, b) =>
+          (a.company_name || "").localeCompare(b.company_name || "", "tr")
+        );
     },
     criticalReceivablesSummary() {
       const count = this.criticalReceivables.length;

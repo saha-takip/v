@@ -266,7 +266,7 @@
     <el-dialog
       title="Müşteri Silme İşlemi"
       :visible.sync="deleteCustomerPopupStatus"
-      width="25%"
+      width="25.5%"
       @close="closeDeletePopup"
     >
       <p class="mb-0" v-html="deleteConfirmationMessage"></p>
@@ -535,10 +535,12 @@ export default {
         );
       }
 
-      return list;
+      return list.sort((a, b) =>
+        (a.companyName || "").localeCompare(b.companyName || "", "tr")
+      );
     },
     getRouteList() {
-      return this.getCustomerList.filter((item) => {
+      let list = this.getCustomerList.filter((item) => {
         if (this.filter.groupForRoute && this.filter.groupForRoute.length > 0) {
           if (!this.filter.groupForRoute.includes(Number(item.group)))
             return false;
@@ -550,6 +552,10 @@ export default {
 
         return true;
       });
+
+      return list.sort((a, b) => 
+        (a.companyName || "").localeCompare(b.companyName || "", "tr")
+      );
     },
     getZoneName() {
       if (
@@ -752,15 +758,6 @@ export default {
                 new Date(b.transactionDate) - new Date(a.transactionDate)
             )
             .slice(0, 5);
-
-          sortedTransactions.sort(
-            (a, b) => new Date(a.transactionDate) - new Date(b.transactionDate)
-          );
-
-          // Kronolojik göstermek için tekrar eskiden yeniye sırala
-          sortedTransactions.sort(
-            (a, b) => new Date(a.transactionDate) - new Date(b.transactionDate)
-          );
 
           sortedTransactions.forEach((t) => {
             const isSell = t.transactionType === 0;
