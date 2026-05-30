@@ -1,0 +1,16 @@
+name: Supabase Keep-Alive (Ping)
+
+on:
+  schedule:
+    - cron: '0 9 * * 1,4'
+  workflow_dispatch:
+
+jobs:
+  ping_supabase:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send Ping Request to Tenants Table
+        run: |
+          curl -X GET "${{ secrets.VUE_APP_SUPABASE_URL }}/rest/v1/tenants?select=name&limit=1" \
+          -H "apikey: ${{ secrets.VUE_APP_SUPABASE_ANON_KEY }}" \
+          -H "Authorization: Bearer ${{ secrets.VUE_APP_SUPABASE_ANON_KEY }}"
