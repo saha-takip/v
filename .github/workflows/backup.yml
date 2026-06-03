@@ -25,23 +25,21 @@ jobs:
         id: timestamp
         run: echo "NOW=$(date +'%Y-%m-%d_%H-%M-%S')" >> $GITHUB_ENV
 
-      - name: Resolve Supabase Host to IPv4
+      - name: Resolve Direct Supabase Host to IPv4
         run: |
-          # Supabase pooler IP'sini elinizle çözüp sisteme tanıtıyoruz
-          SUPABASE_IP=$(dig +short jgonjcfxeaigsaokpqoz.pooler.supabase.com | tail -n1)
-          if [ -z "$SUPABASE_IP" ]; then
-            # Eğer dig bulamazsa alternatif olarak genel pooler bloğundan IPv4 adresini zorluyoruz
-            SUPABASE_IP="65.109.117.202" 
+          SUPABASE_DIRECT_IP=$(dig +short db.jgonjcfxeaigsaokpqoz.supabase.co | tail -n1)
+          if [ -z "$SUPABASE_DIRECT_IP" ]; then
+            SUPABASE_DIRECT_IP="3.120.124.238" 
           fi
-          echo "$SUPABASE_IP jgonjcfxeaigsaokpqoz.pooler.supabase.com" | sudo tee -a /etc/hosts
+          echo "$SUPABASE_DIRECT_IP db.jgonjcfxeaigsaokpqoz.supabase.co" | sudo tee -a /etc/hosts
 
       - name: Backup Database
         run: |
           export PGPASSWORD="${{ secrets.DB_PASSWORD }}"
 
-          pg_dump -h jgonjcfxeaigsaokpqoz.pooler.supabase.com \
+          pg_dump -h db.jgonjcfxeaigsaokpqoz.supabase.co \
                   -U postgres.jgonjcfxeaigsaokpqoz \
-                  -p 6543 \
+                  -p 5432 \
                   -d postgres \
                   --no-password \
                   -F c \
