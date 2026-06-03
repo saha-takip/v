@@ -25,18 +25,23 @@ jobs:
         id: timestamp
         run: echo "NOW=$(date +'%Y-%m-%d_%H-%M-%S')" >> $GITHUB_ENV
 
-      - name: Set up IPv4 Proxy for Supabase
-        uses: fofofof/connect-to-supabase-ip4@v1
-        with:
-          supabase-project-id: 'jgonjcfxeaigsaokpqoz'
+      - name: Resolve Supabase Host to IPv4
+        run: |
+          # Supabase pooler IP'sini elinizle çözüp sisteme tanıtıyoruz
+          SUPABASE_IP=$(dig +short jgonjcfxeaigsaokpqoz.pooler.supabase.com | tail -n1)
+          if [ -z "$SUPABASE_IP" ]; then
+            # Eğer dig bulamazsa alternatif olarak genel pooler bloğundan IPv4 adresini zorluyoruz
+            SUPABASE_IP="65.109.117.202" 
+          fi
+          echo "$SUPABASE_IP jgonjcfxeaigsaokpqoz.pooler.supabase.com" | sudo tee -a /etc/hosts
 
       - name: Backup Database
         run: |
           export PGPASSWORD="${{ secrets.DB_PASSWORD }}"
 
-          pg_dump -h 127.0.0.1 \
+          pg_dump -h jgonjcfxeaigsaokpqoz.pooler.supabase.com \
                   -U postgres.jgonjcfxeaigsaokpqoz \
-                  -p 5432 \
+                  -p 6543 \
                   -d postgres \
                   --no-password \
                   -F c \
