@@ -34,10 +34,7 @@ jobs:
         run: |
           export PGPASSWORD="${{ secrets.DB_PASSWORD }}"
 
-          pg_dump -h 127.0.0.1 \
-                  -U postgres.jgonjcfxeaigsaokpqoz \
-                  -p 5432 \
-                  -d postgres \
+          pg_dump "postgresql://postgres.jgonjcfxeaigsaokpqoz@127.0.0.1:5432/postgres?sslmode=require" \
                   --no-password \
                   -F c \
                   -b \
