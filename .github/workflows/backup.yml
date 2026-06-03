@@ -25,13 +25,18 @@ jobs:
         id: timestamp
         run: echo "NOW=$(date +'%Y-%m-%d_%H-%M-%S')" >> $GITHUB_ENV
 
+      - name: Set up IPv4 Proxy for Supabase
+        uses: fofofof/connect-to-supabase-ip4@v1
+        with:
+          supabase-project-id: 'jgonjcfxeaigsaokpqoz'
+
       - name: Backup Database
         run: |
           export PGPASSWORD="${{ secrets.DB_PASSWORD }}"
 
-          pg_dump -h jgonjcfxeaigsaokpqoz.pooler.supabase.com \
+          pg_dump -h 127.0.0.1 \
                   -U postgres.jgonjcfxeaigsaokpqoz \
-                  -p 6543 \
+                  -p 5432 \
                   -d postgres \
                   --no-password \
                   -F c \
