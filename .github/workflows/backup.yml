@@ -29,7 +29,7 @@ jobs:
         run: |
           export PGPASSWORD="${{ secrets.DB_PASSWORD }}"
 
-          pg_dump -h jgonjcfxeaigsaokpqoz.pooler.supabase.com \
+          pg_dump -h db.jgonjcfxeaigsaokpqoz.supabase.co \
                   -U postgres.jgonjcfxeaigsaokpqoz \
                   -p 5432 \
                   -d postgres \
