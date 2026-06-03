@@ -12,10 +12,10 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Install PostgreSQL 17
+      - name: Install PostgreSQL 17 and Networking Tools
         run: |
           sudo apt-get update
-          sudo apt-get install -y wget gnupg
+          sudo apt-get install -y wget gnupg socat
           wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo apt-key add -
           echo "deb http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" | sudo tee /etc/apt/sources.list.d/pgdg.list
           sudo apt-get update
@@ -25,19 +25,16 @@ jobs:
         id: timestamp
         run: echo "NOW=$(date +'%Y-%m-%d_%H-%M-%S')" >> $GITHUB_ENV
 
-      - name: Resolve Direct Supabase Host to IPv4
+      - name: Create IPv4 to IPv6 Tunnel
         run: |
-          SUPABASE_DIRECT_IP=$(dig +short db.jgonjcfxeaigsaokpqoz.supabase.co | tail -n1)
-          if [ -z "$SUPABASE_DIRECT_IP" ]; then
-            SUPABASE_DIRECT_IP="3.120.124.238" 
-          fi
-          echo "$SUPABASE_DIRECT_IP db.jgonjcfxeaigsaokpqoz.supabase.co" | sudo tee -a /etc/hosts
+          socat TCP4-LISTEN:5432,fork,reuseaddr TCP6:db.jgonjcfxeaigsaokpqoz.supabase.co:5432 &
+          sleep 3
 
       - name: Backup Database
         run: |
           export PGPASSWORD="${{ secrets.DB_PASSWORD }}"
 
-          pg_dump -h db.jgonjcfxeaigsaokpqoz.supabase.co \
+          pg_dump -h 127.0.0.1 \
                   -U postgres.jgonjcfxeaigsaokpqoz \
                   -p 5432 \
                   -d postgres \
