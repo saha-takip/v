@@ -29,7 +29,10 @@ jobs:
         run: |
           export PGPASSWORD="${{ secrets.DB_PASSWORD }}"
 
-          pg_dump "postgresql://postgres.jgonjcfxeaigsaokpqoz@db.jgonjcfxeaigsaokpqoz.supabase.co:5432/postgres?sslmode=require" \
+          pg_dump -h jgonjcfxeaigsaokpqoz.pooler.supabase.com \
+                  -U postgres.jgonjcfxeaigsaokpqoz \
+                  -p 6543 \
+                  -d postgres \
                   --no-password \
                   -F c \
                   -b \
